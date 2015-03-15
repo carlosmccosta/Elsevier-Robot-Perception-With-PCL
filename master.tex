@@ -1,0 +1,74 @@
+% !TeX encoding = UTF-8
+% !TeX root = master.tex
+% !TeX spellcheck = en_US
+
+\input{tex/preamble}
+\input{tex/glossaries}
+
+
+\journal{Robotics and Autonomous Systems}
+
+
+\begin{document}
+
+
+%---------------------------------------------------------------------------------------------------
+% Top matter
+%---------------------------------------------------------------------------------------------------
+
+\begin{frontmatter}
+
+\title{Accurate 3/6 DoF self-localization system for mobile robot platforms in dynamic environments}
+
+
+\author[inesc-address]{Carlos M. Costa\corref{corresponding-author-note}}
+\cortext[corresponding-author-note]{Corresponding author}
+\ead{carlos.m.costa@inesctec.pt}
+
+\author[inesc-address]{Héber M. Sobreira}
+\ead{heber.m.sobreira@inesctec.pt}
+
+\author[inesc-address]{Armando J. Sousa}
+\ead{asousa@fe.up.pt}
+
+\author[inesc-address]{Germano M. Veiga}
+\ead{germano.veiga@inesctec.pt}
+
+\address[inesc-address]{INESC TEC, Rua Dr. Roberto Frias, 4200-465 Porto, Portugal}
+
+
+%\input{tex/highlights}
+\input{tex/abstract}
+
+
+\begin{keyword}
+self-localization \sep simultaneous localization and mapping \sep point cloud registration \sep geometric feature matching
+\end{keyword}
+
+\end{frontmatter}
+
+
+
+%---------------------------------------------------------------------------------------------------
+% Sections
+%---------------------------------------------------------------------------------------------------
+
+\input{tex/sections/introduction}
+\input{tex/sections/localization-system}
+\input{tex/sections/localization-system-testing-setup}
+\input{tex/sections/localization-system-results}
+\input{tex/sections/conclusions}
+\input{tex/sections/acknowledgments}
+
+
+%---------------------------------------------------------------------------------------------------
+% Bibliography
+%---------------------------------------------------------------------------------------------------
+
+\section*{References}
+
+\bibliographystyle{elsarticle-harv}
+\bibliography{references/references}
+
+
+\end{document}
