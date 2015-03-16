@@ -43,7 +43,7 @@ For \glspl{lidar}, the system provides a \emph{sensor\_msgs::LaserScan} assemble
 
 \begin{figure}[hb]
 	\centering
-	\includegraphics[width=0.47\textwidth]{localization-system/laser-assembly}
+	\includegraphics[width=0.42\textwidth]{localization-system/laser-assembly}
 	\caption{Laser scans assembled with tilting platform (red points)}
 	\label{fig:localization-system_section_laser_assembly}
 \end{figure}
@@ -51,7 +51,7 @@ For \glspl{lidar}, the system provides a \emph{sensor\_msgs::LaserScan} assemble
 
 \subsubsection{Filtering and down sampling}
 
-The time it takes to perform cloud registration is proportional to the amount of points in the ambient point cloud and in the reference map. As such, adjusting the level of detail of the point clouds by using voxel grids gives some control over the desired localization accuracy and the computational resources that will be required. This stage is also useful to mitigate the measurement errors of the depth sensors, since the centroid of a voxel that contains points from several scans will be closer to the real surface (if the voxels have dimensions slightly larger than the expected measurement errors).
+The time it takes to perform cloud registration increases considerable as the amount of points in the ambient point cloud and in the reference map becomes larger. As such, adjusting the level of detail of the point clouds by using voxel grids gives some control over the desired localization accuracy and the computational resources that will be required. This stage is also useful to mitigate the measurement errors of the depth sensors, since the centroid of a voxel that contains points from several scans will be closer to the real surface (if the voxels have dimensions slightly larger than the expected measurement errors).
 
 The localization system allows the application of several preprocessing algorithms (algorithm type / configuration and execution order customizable). The next sections detail some of these methods that can be used to filter and downsample point clouds.
 
