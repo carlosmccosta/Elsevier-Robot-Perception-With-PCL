@@ -7,7 +7,7 @@ This section presents several test scenarios that were devised to evaluate the i
 
 The localization system was tested on laser sensor data retrieved from three different mobile robot platforms and executed on the same computer in order to allow a direct comparison of computation time. This computer was a Clevo P370EM3 laptop (with a Intel Core i7 3630QM CPU at 2.4GHz, 16 GB of RAM DDR3, NVidia GTX680M graphics card and a Samsung 840 Pro SSD) and it was running Ubuntu 12.04 along with \gls{ros} Hydro, \gls{pcl} 1.7 and Gazebo 1.9.
 
-The sensor data was recorded into rosbags, and is publicly available at\footnote{\url{https://github.com/carlosmccosta/dynamic_robot_localization_tests}} along with all the detailed results and experiments videos, in order to allow future comparisons with other localization systems. The hardware specifications of the \glspl{lidar} used is presented in \cref{tab:localization-system-evaluation_laser-hardware-specifications} and the laser points after downsampling and registration can be seen on the movement paths figures as green circles (inliers) and red circles (outliers).
+The sensor data was recorded into rosbags, and is publicly available at\footnote{\url{https://github.com/carlosmccosta/dynamic_robot_localization_tests}} along with all the detailed results and experiments videos, in order to allow future comparisons with other localization systems. The hardware specifications of the \glspl{lidar} used is presented in \cref{tab:localization-system-evaluation_laser-hardware-specifications} and the laser points after downsampling and registration can be seen on the movement paths figures as green dots (inliers) and red dots (outliers).
 
 
 \subsubsection{Jarvis platform}
@@ -130,7 +130,7 @@ Given that the Guardian mobile manipulator is expected to work on the walls of t
 		\centering
 		\includegraphics[width=\textwidth]{localization-system-evaluation/testing-environments/guardian-environment-cluttered-dynamic}
 	\end{subfigure}
-	\caption{Guardian cluttered (left) and dynamic (right) testing environments}
+	\caption{Guardian cluttered (top) and dynamic (bottom) testing environments}
 	\label{fig:localization-system-evaluation_guardian-tests-environment-cluttered}
 \end{figure}
 
@@ -158,7 +158,7 @@ The industrial hall is a large room with several tables and objects spread aroun
 
 \subsubsection{Kinect in flying arena}
 
-The flying arena shown in \cref{fig:localization-system-evaluation_flying-arena} is a large room in which several objects were added to test 6 \gls{dof} pose tracking. In these tests the Kinect was moved by the operator in three different paths. The first was a smooth fly movement over the testing scene, while the other two aimed to test paths with mainly translations and rotations. This environment had a ground truth provided by Vicon cameras\footnote{\url{http://www.vicon.com/} and according to the authors of the dataset \cite{Pomerleau2011} it had sub-centimeter accuracy}.
+The flying arena shown in \cref{fig:localization-system-evaluation_flying-arena} is a large room in which several objects were added to test 6 \gls{dof} pose tracking. In these tests the Kinect was moved by the operator in three different paths. The first was a smooth fly movement over the testing scene, while the other two aimed to test paths with mainly translations and rotations. This environment had a ground truth provided by Vicon cameras\footnote{\url{http://www.vicon.com/}} and according to the authors of the dataset \cite{Pomerleau2011} it had sub-centimeter accuracy.
 
 \begin{figure}[ht]
 	\centering

@@ -123,7 +123,7 @@ Surface reconstruction can also be useful when the point cloud is built from sev
 
 Most of feature detection, description and matching algorithms along with some registration methods rely on the point's surface normal and curvature. These algorithms analyze the neighborhood of a given point in order to compute the line / surface normal, and as such, the correct specification of what points should be included in the estimation is crucial to achieve accurate results. This depends on the environment geometry and the level of detail that is required, and is usually done by specifying a radius distance or by limiting the number of neighboring points to use.
 
-The next sections describe some of the methods that are supported for 3/6 \gls{dof} sensor data.
+The next sections describe some of the methods that are supported for 2D/3D sensor data.
 
 
 \subsubsection{Line normal estimation}
@@ -142,7 +142,7 @@ Aligning two point clouds with overlapping views of the environment requires the
 
 One of those techniques uses histograms to describe the geometric properties of the environment around a given point. This allows points to be matched even if they have completely different Euclidean coordinates. Also, by using histograms and sampling techniques, these descriptors are much more robust against sensor noise and varying level of point density. However, these advantages come with a heavy computational cost, and as such, point descriptors should only be computed on the most descriptive areas of the environment.
 
-Identifying these environment points is known as feature / keypoint detection \cite{Filipe2014}, and usually involves finding interesting points, such as corners and edges. Besides uniqueness, these points must also be repeatable. This means that the detection algorithms should be able to find the same points even if they are present in different point clouds with sensor noise and varying point density. This is of the utmost importance, because if the same keypoints are not identified on both clouds, then matching the point descriptors will likely fail.
+Identifying these environment points is known as feature / keypoint detection \cite{Filipe2014a}, and usually involves finding interesting points, such as corners and edges. Besides uniqueness, these points must also be repeatable. This means that the detection algorithms should be able to find the same points even if they are present in different point clouds with sensor noise and varying point density. This is of the utmost importance, because if the same keypoints are not identified on both clouds, then matching the point descriptors will likely fail.
 
 Currently, the localization system can use the \gls{sift} \cite{Lowe2004} algorithm on the point's curvature or the \gls{iss3d} \cite{Zhong2009} keypoint detector on the point's normals.
 
@@ -166,14 +166,14 @@ Feature registration is the process of matching keypoint descriptors in order to
 
 \subsubsection{Final alignment with point cloud error minimization}
 
-Point cloud registration algorithms such as \gls{icp} \cite{Besl1992} (with its several known variations \cite{Rusinkiewicz2001,Pomerleau2013} like \gls{icp} point-to-point, \gls{icp} point-to-point non-linear, \gls{icp} point-to-plane and generalized \gls{icp} \cite{Segal2009}) and the \gls{ndt} \cite{Magnusson2009} are among the most popular algorithms to register point clouds. They can achieve very accurate cloud registration but they require an approximate initial pose for the registration to successfully converge to a correct solution (otherwise they may achieve only partial cloud overlap or even fail to converge to a valid solution).
+Point cloud registration algorithms such as \gls{icp} \cite{Besl1992a} (with its several known variations \cite{Rusinkiewicz2001,Pomerleau2013} like \gls{icp} point-to-point, \gls{icp} point-to-point non-linear, \gls{icp} point-to-plane and generalized \gls{icp} \cite{Segal2009}) and the \gls{ndt} \cite{Magnusson2009} are among the most popular algorithms to register point clouds. They can achieve very accurate cloud registration but they require an approximate initial pose for the registration to successfully converge to a correct solution (otherwise they may achieve only partial cloud overlap or even fail to converge to a valid solution).
 
 
 \subsection{Outlier detection}
 
 Detecting which points of the environment are not part of the reference point cloud can be very useful to evaluate the quality of point cloud registration as well as to analyze the presence of previously unknown objects. It's computation splits the ambient cloud into two point sets. One containing inliers (points correctly registered and present in the reference point cloud) and the other having the outliers (points that are either incorrectly registered or not present in the reference cloud).
 
-A given ambient point can be classified as outlier if the corresponding closest point in the reference cloud is farther way than a given distance threshold. These calculation can be done efficiently by using the reference point cloud kd-tree. In \cref{fig:localization-system_outlier-detection} is an example of a ambient point cloud retrieved with a tilting laser and registered with an indoor map (yellow points). After registration, the ambient point cloud was split into inliers (red points) and outliers (blue points).
+A given ambient point can be classified as outlier if the corresponding closest point in the reference cloud is farther away than a given distance threshold. These calculation can be done efficiently by using the reference point cloud kd-tree. In \cref{fig:localization-system_outlier-detection} is an example of a ambient point cloud retrieved with a tilting laser and registered with an indoor map (yellow points). After registration, the ambient point cloud was split into inliers (red points) and outliers (blue points).
 
 
 \begin{figure}
@@ -204,6 +204,6 @@ The last metrics are the corrections that the registration matrix introduced. Gi
 If all these metrics are within acceptable thresholds, then the robot pose can be computed by applying the matrix correction to the initial pose associated with the ambient sensor data. If any of these metrics are not acceptable, then the system can be configured to simply discard this pose estimation and try to estimate the pose in the next sensor data update or it can apply a tracking recovery attempt with a different registration algorithm (or the same algorithm with different parameters). If several consecutive pose estimations are discarded, the system can have a second level of recovery that can be configured to use the initial pose estimation algorithms in order to finally estimate the robot pose and reset the tracking state.
 
 
-\section{Dynamic map update}
+\subsection{Dynamic map update}
 
 After performing a successful pose estimation, the localization system can update the localization map by either integrating only the unknown objects or the full registered point cloud (it can also be used in conjunction with OctoMap \cite{Hornung2013} to perform probabilistic map updates). Integrating only the unknown objects is the recommended approach when there is a known map and the environment is expected to change gradually. This is also more efficient as only the points that need to be integrated are processed and ray traced in OctoMap. On the other hand, integrating the full registered cloud can be desirable if the map of the environment is very incomplete, very outdated or expected to change considerably during the operation of the robot.
