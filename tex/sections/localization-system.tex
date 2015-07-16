@@ -1,6 +1,6 @@
 \section{Localization system}\label{sec:localization-system}
 
-This section details the ROS implementation of the proposed 3/6 DoF self-localization system\footnote{\url{https://github.com/carlosmccosta/dynamic_robot_localization}}. It starts with an overview of the main processing stages and then details the control flow and algorithms within the localization pipeline.
+This section details the ROS implementation of the proposed 3/6 DoF \gls{drl}\footnote{\url{https://github.com/carlosmccosta/dynamic_robot_localization}}. It starts with an overview of the main processing stages and then details the control flow and algorithms within the localization pipeline.
 
 \subsection{Overview}
 
@@ -8,14 +8,21 @@ The self-localization system was implemented as a \gls{ros} package and extensib
 
 The \gls{ros} implementation can receive sensor data through \emph{sensor\_msgs::PointCloud2} messages and as a result it can directly use data from RGB-D and \gls{tof} cameras. To use \glspl{lidar} it provides an assembler that can produce point clouds by merging measurements from several sensor scans using spherical linear interpolation. As such, if the \gls{lidar} sensors are mounted on tilting platforms, they can emulate a 3D sensor and retrieve a very detailed view of the environment.
 
-The self-localization system has a modular software architecture and was implemented as several C++ templated shared libraries that can be easily used for other applications besides robot self-localization. As can be seen in \Cref{fig:localization-system_localization-system-overview}, it is an extensible and flexible system able to fit the needs of a wide range of mobile platforms. It can be configured as a tracking system, with or without pose recovery and can also have initial pose estimation using feature detection and matching. Moreover, it can dynamically create and update the map if necessary.
+The self-localization system has a modular software architecture and was implemented as several C++ templated shared libraries that can be easily used for other applications besides robot self-localization. As can be seen in \cref{fig:localization-system_localization-system-brief-overview,fig:localization-system_localization-system-overview}, it is an extensible and flexible system able to fit the needs of a wide range of mobile platforms. It can be configured as a tracking system, with or without pose recovery and can also have initial pose estimation using feature detection and matching. Moreover, it can dynamically create and update the map if necessary.
 
 It supports two configurable processing pipelines in order to allow fast deployment of robots in large environments. One to process new reference maps and another to localize a mobile robot platform using live point clouds. This enables the loading of either processed or unprocessed referenced point clouds and allows a navigation supervisor to dynamically provide the relevant map sections based on the robot position (in order to reduce the computation resources needed).
 
 \begin{figure}[h]
 	\centering
+	\includegraphics[width=0.35\textwidth]{localization-system/localization-system-brief-overview}
+	\caption{DRL system data flow overview}
+	\label{fig:localization-system_localization-system-brief-overview}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
 	\includegraphics[width=0.45\textwidth]{localization-system/localization-system-overview}
-	\caption{Localization system overview}
+	\caption{DRL system detailed processing pipeline}
 	\label{fig:localization-system_localization-system-overview}
 \end{figure}
 
@@ -41,7 +48,7 @@ The self-localization system can use any sensor that provides point clouds, name
 For \glspl{lidar}, the system provides a \emph{sensor\_msgs::LaserScan} assembler\footnote{\url{https://github.com/carlosmccosta/laserscan_to_pointcloud}} that converts laser measurements in polar coordinates into Cartesian coordinates and projects the points using spherical linear interpolation (in order to account for laser scan deformation that occurs when the robot is moving and rotating). It can merge scans from several lasers sensors and it will publish the final point cloud after assembling a given number of scans or periodically after a specified duration. These assembly configurations can be changed at runtime based on the robot velocity (for example, when the robots moves slower, more laser scans are assembled for each published point cloud) or through the use of the \gls{ros} dynamic reconfigure \gls{api}, which allows a navigation supervisor to control the rate at which the localization system operates.
 
 
-\begin{figure}[hb]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=0.45\textwidth]{localization-system/laser-assembly}
 	\caption{Laser scans assembled with tilting platform (red points)}
