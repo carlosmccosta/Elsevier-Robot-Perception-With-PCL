@@ -21,7 +21,7 @@ It supports two configurable processing pipelines in order to allow fast deploym
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system/localization-system-overview}
+	\includegraphics[width=0.49\textwidth]{localization-system/localization-system-overview}
 	\caption{DRL system detailed processing pipeline}
 	\label{fig:localization-system_localization-system-overview}
 \end{figure}
@@ -50,7 +50,7 @@ For \glspl{lidar}, the system provides a \emph{sensor\_msgs::LaserScan} assemble
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system/laser-assembly}
+	\includegraphics[width=0.48\textwidth]{localization-system/laser-assembly}
 	\caption{Laser scans assembled with tilting platform (red points)}
 	\label{fig:localization-system_section_laser_assembly}
 \end{figure}
@@ -77,7 +77,7 @@ Random sampling \cite{Vitter1984} is a fast downsampling method that randomly se
 
 \paragraph{Covariance sampling}
 
-Covariance sampling \cite{Gelfand} is a subsampling method that aims to create a stable downsampled point cloud to be registered with \gls{icp} algorithms. It incrementally builds the downsampled point cloud while trying to keep the 6 eigenvalues of the covariance matrix as close to each other as possible (pcl::CovarianceSampling).
+Covariance sampling \cite{Gelfand} is a subsampling method that aims to create a stable downsampled point cloud to be registered with \gls{icp} algorithms. It incrementally builds the downsampled point cloud while trying to keep the 6 eigenvalues of the filtered point cloud covariance matrix as close to each other as possible (pcl::CovarianceSampling).
 
 The resultant point cloud has the desired number of points and is stable enough to be matched with \gls{icp} point to plane algorithms.
 
@@ -185,12 +185,12 @@ A given live point can be classified as outlier if the corresponding closest poi
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[h]{0.45\textwidth}
+	\begin{subfigure}[ht]{0.49\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{localization-system/outlier-detection-gazebo}
 		\caption{Gazebo overview}
 	\end{subfigure}
-	\begin{subfigure}[h]{0.45\textwidth}
+	\begin{subfigure}[ht]{0.49\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{localization-system/outlier-detection}
 		\caption{RViz overview}
@@ -204,13 +204,21 @@ A given live point can be classified as outlier if the corresponding closest poi
 
 After a point cloud is registered by the localization system, several metrics are calculated in order to evaluate if a valid pose can be retrieved using the registration matrix.
 
-The first computed metrics are the percentage of inliers and the \gls{rmse} of these inliers. If a minimum number of points was registered and the inlier percentage and root mean square error are acceptable, then the registration is considered successful. However, these registered points can be agglomerated in a small area and may not be representative of the robot location. As such, a second metric is computed that takes into account the angular distribution (drl::AngularDistributionAnalyzer) of these inliers. This metric gives a measurement of how reliable is this registration and is based on the fact that there is high confidence in a given pose estimation when there are correctly registered points all around the robot.
+The first computed metrics are the percentage of inliers and the \gls{rmse} of these inliers. If a minimum number of points was registered and the inlier percentage and root mean square error are acceptable (typical values for dynamic environments are at least 35\% of inliers with a \gls{rmse} lower than 30 mm), then the registration is considered successful. However, these registered points can be agglomerated in a small area and may not be representative of the robot location. As such, a second metric is computed that takes into account the angular distribution (drl::AngularDistributionAnalyzer) of these inliers. This metric gives a measurement of how reliable is this registration and is based on the fact that there is high confidence in a given pose estimation when there are correctly registered points all around the robot. The recommended parameters for this metric are dependent on the combined field of view of the sensors and if the robot is in an environment with geometry surrounding it. For typical use cases, a minimum of 60º of inliers angular distribution is reasonable.
 
-The last metrics are the corrections that the registration matrix introduced. Given that the localization system will be in tracking mode most of the time, it is possible to define how far a new pose can be in relation to the previous accepted location and discard new poses that exceed a given threshold. This is useful to discard pose corrections that are very unlikely to happen, such as the robot moving half a meter between poses when it is expected to move only at 30 cm/s. These situations can happen when there is a sudden decrease in the field of view (that can occur due to sensor occlusion or malfunction) or when large unknown objects very similar to sections of the map appear into the field of view of the robot.
+The last metrics are the corrections that the registration matrix introduced. Given that the localization system will be in tracking mode most of the time, it is possible to define how far a new pose can be in relation to the previous accepted location and discard new poses that exceed a given threshold. This is useful to discard pose corrections that are very unlikely to happen, such as the robot moving half a meter between poses when it is expected to move only at 30 cm/s. These situations can happen when there is a sudden decrease in the field of view (that can occur due to sensor occlusion or malfunction) or when large unknown objects very similar to sections of the map appear into the field of view of the robot. For a typical robot moving slowly due to safety reasons, a maximum of 13 cm of translation and 17º of rotation between pose estimation might be reasonable (these thresholds depend on the sensors refresh rate and on the expected robot speed).
 
-If all these metrics are within acceptable thresholds, then the robot pose can be computed by applying the matrix correction to the initial pose associated with the live sensor data. If any of these metrics are not acceptable, then the system can be configured to simply discard this pose estimation and try to estimate the pose in the next sensor data update or it can apply a tracking recovery attempt with a different registration algorithm (or the same algorithm with different parameters). If several consecutive pose estimations are discarded, the system can have a second level of recovery that can be configured to use the initial pose estimation algorithms in order to finally estimate the robot pose and reset the tracking state.
+If all these metrics are within acceptable limits, then the robot pose can be computed by applying the matrix correction to the initial pose associated with the live sensor data.
+
+If any of these metrics are not acceptable, then the system can be configured to simply discard this pose estimation and try to estimate the pose in the next sensor data updates or it can apply a tracking recovery attempt with a different registration algorithm (or the same algorithm with different parameters).
+
+If several consecutive pose estimations are discarded (or a given time has passed since the last know pose), the system can have a second level of recovery that can be configured to use the initial pose estimation algorithms in order to finally estimate the robot pose and reset the tracking state.
 
 
 \subsection{Dynamic map update}
 
-After performing a successful pose estimation, the localization system can update the localization map by either integrating only the unknown objects or the full registered point cloud (it can also be used in conjunction with OctoMap \cite{Hornung2013} to perform probabilistic map updates). Integrating only the unknown objects is the recommended approach when there is a known map and the environment is expected to change gradually. This is also more efficient as only the points that need to be integrated are processed and ray traced in OctoMap. Moreover, integrating only new sections of the map avoids the degradation or pollution by sensor noise of the detail of static areas provided with \gls{cad} models. On the other hand, integrating the full registered cloud can be desirable if the map of the environment is very incomplete, very outdated or expected to change considerably during the operation of the robot.
+After performing a successful pose estimation, the localization system can update the localization map by either integrating only the unknown objects or the full registered point cloud (it can also be used in conjunction with OctoMap \cite{Hornung2013} to perform probabilistic map updates).
+
+Integrating only the unknown objects is the recommended approach when there is a known map and the environment is expected to change gradually. This is also more efficient as only the points that need to be integrated are processed and ray traced in OctoMap. Moreover, integrating only new sections of the map avoids the degradation or pollution by sensor noise of the detail of static areas provided with \gls{cad} models
+
+ On the other hand, integrating the full registered cloud can be desirable if the map of the environment is very incomplete, very outdated or expected to change considerably during the operation of the robot.
