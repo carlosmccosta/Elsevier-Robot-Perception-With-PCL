@@ -3,43 +3,45 @@
 
 \subsection{Overview}
 
-The main results of the 3 \gls{dof} tests performed with the \gls{drl} system (performing localization only) are presented in \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl}. They summarize each test by fitting a normal distribution to each evaluation metric. They were retrieved with a known initial pose and used \gls{icp} point-to-point as tracking algorithm. The Jarvis and Pioneer tests had a map built using the localization system in mapping mode and were manually corrected to achieve a resolution of 10 and 25 mm respectively (shown in \Cref{fig:localization-system-evaluation_lab-10mm} and \Cref{fig:localization-system-evaluation_drl-corrected} respectively). The Guardian tests relied on a map built from the \gls{cad} model with resolution of 2 mm. Sensor data preprocessing relied on a voxel grid of 50 mm in order to reduce the impact of sensor measurement noise and also control the level of detail of the live point clouds. The initial pose estimation subsystem tests used \gls{sift} for keypoint selection, \gls{fpfh} for keypoint description and the feature matching algorithm described in \Cref{subsec:localization-system_feature-registration} to estimate the initial position and orientation of the robot (\Cref{fig:localization-system-evaluation_ship-interior-initial-pose-estimation-sift-fpfh-ransac-gicp-1} shows the accepted initial poses when the robot was in the lower right corner of the Guardian test environment and ws given as the initial pose the large red arrow).
+The main results of the 3 \gls{dof} tests performed with the \gls{drl} system (performing localization only with a given initial pose) are presented in \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl}. They summarize each test by fitting a normal distribution to each evaluation metric. They were retrieved with a known initial pose and used \gls{icp} point-to-point as tracking algorithm. The Jarvis and Pioneer tests had a map built using the localization system in mapping mode and were manually corrected to achieve a resolution of 10 and 25 mm respectively (shown in \Cref{fig:localization-system-evaluation_lab-10mm} and \Cref{fig:localization-system-evaluation_drl-corrected} respectively). The Guardian tests relied on a map built from the \gls{cad} model with resolution of 2 mm. Sensor data preprocessing relied on a voxel grid of 50 mm in order to reduce the impact of sensor measurement noise and also control the level of detail of the live point clouds. The initial pose estimation subsystem tests used \gls{sift} for keypoint selection, \gls{fpfh} for keypoint description and the feature matching algorithm described in \Cref{subsec:localization-system_feature-registration} to estimate the initial position and orientation of the robot (\Cref{fig:localization-system-evaluation_ship-interior-initial-pose-estimation-sift-fpfh-ransac-gicp-1} shows the accepted initial poses when the robot was in the lower right corner of the Guardian test environment and was given as the initial pose the large red arrow).
 
-The next sections will provide an overview analysis of the main 3 \gls{dof} results achieved with the \gls{drl} system. It will start by explaining how laser spherical interpolation can mitigate point cloud deformation. Later on it will analyze the point cloud preprocessing stage and why it should be carefully tuned to the sensors and ambient geometry. Next it will present the mapping problem and why it is necessary to have accurate environment representations in order to achieve precise localization. Finally it will be presented a global analysis of the tests results, in which the pose estimation accuracy achieved by the \gls{drl} system will be compared with the ground truth, odometry and \gls{amcl}.
+The next sections we will provide a brief analysis of the main 3 \gls{dof} results achieved with the \gls{drl} system. We will start by explaining how laser spherical interpolation can improve localization by mitigating point cloud deformation. Later on we will analyze the point cloud preprocessing stage and why it should be carefully tuned to the sensors and ambient geometry. Next we will present the mapping results and why it is necessary to have accurate environment representations in order to achieve precise localization. Finally it will be presented a global analysis of the tests results, in which the pose estimation accuracy achieved by the \gls{drl} system will be compared with the ground truth, odometry and \gls{amcl}.
 
 
 \begin{sidewaystable*}
-	\caption{3 \glsentrytext{dof} localization system results}
+	\caption{3 \glsentrytext{dof} \glsentrytext{drl} localization test results}
 	\tabulinesep = 1.2ex
 	\setlength{\tabcolsep}{0.1em}
 	\centering
 	\scriptsize
-	\begin{tabu} to \textwidth { X[m,c] X[m,c] X[m,c] X[1.7m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] }
+	\begin{tabu} to \textwidth { X[m,c] X[m,c] X[m,c] X[1.7m,c] X[m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] }
 		\hline
-		\multicolumn{6}{c}{Test conditions} && \multicolumn{2}{c}{Translation error (mm)} && \multicolumn{2}{c}{Rotation error (degrees)} && \multicolumn{2}{c}{Outliers percentage [0..100]} && \multicolumn{2}{c}{Global computation time (ms)} \\
-		\cline{1-6} \cline{8-9} \cline{11-12} \cline{14-15} \cline{17-18}
-		Platform 																& Ambient 													& Path shape 											& Path velocities 		& Map cell resolution 	& Nº scans / Nº lasers 	&& Mean   & Standard deviation 	&& Mean  & Standard deviation 	&& Mean  & Standard deviation 	&& Mean   & Standard deviation \\ \hline
-		\multirow{4}{0.05\textwidth}{\centering Jarvis robot} 					& \multirow{2}{0.05\textwidth}{\centering Cluttered} 		& \multirow{2}{0.05\textwidth}{\centering Rounded} 		& 5 cm/s 				& 10 mm					& 1-4/1 				&& 3.384  & 1.900 				&& 0.549 & 0.087 				&& 15.75 & 3.84 				&& 12.052 & 12.232	\\
-																				&															&														& 30 cm/s				& 10 mm					& 1-4/1					&& 12.250 & 8.901				&& 0.535 & 0.414				&& 16.08 & 3.80					&& 21.295 &	8.352	\\ \tabucline[0.5pt on 3pt off 2pt]{2-3}
-																				& \multirow{2}{0.05\textwidth}{\centering Cluttered dynamic}& \multirow{2}{0.05\textwidth}{\centering Complex} 		& 5 cm/s 				& 10 mm					& 1-4/1			 		&& 4.280  & 2.264 				&& 0.441 & 0.070 				&& 24.35 & 5.17 				&& 11.776 & 12.265	\\
-																				&															&														& {50-30-50-10 cm/s}	& 10 mm					& 1-4/1					&& 6.422  &	3.992				&& 0.397 & 0.099				&& 23.84 & 5.59					&& 13.376 &	13.316	\\ \tabucline[0.5pt on 3pt off 2pt]{1-3}
-		\multirow{4}{0.05\textwidth}{\centering Pioneer robot}					& \multirow{4}{0.05\textwidth}{\centering Cluttered dynamic}& 360º													& 23 cm/s				& 25 mm					& 1/1					&& 20.105 & 10.814				&& 5.704 & 0.662				&& 11.71 & 3.37					&& 5.046  & 2.106	\\
-																				&															& SLAM 1												& 26 cm/s				& 25 mm					& 1/1					&& 22.434 & 12.052				&& 5.429 & 0.676				&& 4.31  & 3.84					&& 4.569  & 2.530	\\
-																				&															& SLAM 2												& 19 cm/s				& 25 mm					& 1/1					&& 19.391 & 12.568				&& 5.518 & 0.818				&& 5.09  & 4.11					&& 4.650  & 2.180	\\
-																				&															& SLAM 3												& 16 cm/s				& 25 mm					& 1/1					&& 17.480 & 8.895				&& 5.455 & 0.732				&& 4.15  & 4.26					&& 4.388  & 2.526	\\ \tabucline[0.5pt on 3pt off 2pt]{1-3}
-		\multirow{6}{0.05\textwidth}{\centering Guardian simulator (Gazebo)} 	& \multirow{2}{0.05\textwidth}{\centering Static} 			& \multirow{6}{0.05\textwidth}{\centering Wall follower}& 5 cm/s 				& 2 mm					& 2/2 					&& 2.642  & 0.463 				&& 0.016 & 0.023 				&& 0.0   & 0.0  				&& 5.723  & 1.868 	\\
-																				&  															&  														& 30 cm/s 				& 2 mm					& 2-4/2					&& 4.654  & 3.893 				&& 0.044 & 0.070 				&& 0.0   & 0.0  				&& 7.784  & 3.178 	\\ \tabucline[0.5pt on 3pt off 2pt]{2-2}
-																				& \multirow{2}{0.05\textwidth}{\centering Cluttered} 		&  														& 5 cm/s 				& 2 mm					& 2/2					&& 2.912  & 0.856 				&& 0.020 & 0.026 				&& 25.05 & 13.30 				&& 11.889 & 9.084 	\\
-																				&  															& 														& 30 cm/s 				& 2 mm					& 2-4/2					&& 6.092  & 3.834 				&& 0.096 & 0.085 				&& 25.65 & 11.02 				&& 23.925 & 27.959 	\\ \tabucline[0.5pt on 3pt off 2pt]{2-2}
-																				& \multirow{2}{0.05\textwidth}{\centering Cluttered dynamic}&  														& 5 cm/s 				& 2 mm					& 2/2					&& 4.593  & 3.802 				&& 0.069 & 0.072 				&& 33.33 & 9.88  				&& 22.217 & 32.408 	\\
-																				&  															&  														& 30 cm/s 				& 2 mm					& 2/2					&& 5.897  & 4.452 				&& 0.095 & 0.104 				&& 27.28 & 13.04 				&& 24.409 & 33.459 	\\
+		\multicolumn{7}{c}{Test conditions} && \multicolumn{2}{c}{Translation error (mm)} && \multicolumn{2}{c}{Rotation error (degrees)} && \multicolumn{2}{c}{Outliers percentage [0..100]} && \multicolumn{2}{c}{Global computation time (ms)} \\
+		\cline{1-7} \cline{9-10} \cline{12-13} \cline{15-16} \cline{18-19}
+		Platform 																& Ambient 													& Path shape 											& Path velocities 		& Map cell resolution	& Spherical linear interpolation	& Nº scans / Nº lasers 	&& Mean   & Standard deviation 	&& Mean  & Standard deviation 	&& Mean  & Standard deviation 	&& Mean   & Standard deviation \\ \hline
+		\multirow{4}{0.05\textwidth}{\centering Jarvis robot} 					& \multirow{3}{0.05\textwidth}{\centering Cluttered} 		& \multirow{3}{0.05\textwidth}{\centering Rounded} 		& 5 cm/s 				& 10 mm					&	Yes								& 1-4/1 				&& 4.281  & 2.264 				&& 0.441 & 0.070 				&& 24.35 & 5.17 				&& 11.776 & 12.265	\\
+																				& 													 		& 														& 5 cm/s 				& 10 mm					&	No								& 1-4/1 				&& 4.957  & 2.473 				&& 0.447 & 0.087 				&& 24.34 & 5.17 				&& 11.656 & 12.997	\\
+																				&															&														& 30 cm/s				& 10 mm					&	Yes								& 1-4/1					&& 12.250 & 8.901				&& 0.535 & 0.414				&& 16.08 & 3.80					&& 21.295 &	8.352	\\ \tabucline[0.5pt on 3pt off 2pt]{2-3}
+																				& \multirow{3}{0.05\textwidth}{\centering Cluttered dynamic}& \multirow{3}{0.05\textwidth}{\centering Complex} 		& 5 cm/s 				& 10 mm					&	Yes								& 1-4/1			 		&& 4.280  & 2.264 				&& 0.441 & 0.070 				&& 24.35 & 5.17 				&& 11.776 & 12.265	\\
+																				&															&														& {50-30-50-10 cm/s}	& 10 mm					&	Yes								& 1-4/1					&& 6.422  &	3.992				&& 0.397 & 0.099				&& 23.84 & 5.59					&& 13.376 &	13.316	\\
+																				&															&														& {50-30-50-10 cm/s}	& 10 mm					&	No								& 1-4/1					&& 8.884  &	8.740				&& 0.422 & 0.142				&& 24.14 & 6.18					&& 14.830 &	23.091	\\ \tabucline[0.5pt on 3pt off 2pt]{1-3}
+		\multirow{4}{0.05\textwidth}{\centering Pioneer robot}					& \multirow{4}{0.05\textwidth}{\centering Cluttered dynamic}& 360º													& 23 cm/s				& 25 mm					&	Yes								& 1/1					&& 20.105 & 10.814				&& 5.704 & 0.662				&& 11.71 & 3.37					&& 5.046  & 2.106	\\
+																				&															& SLAM 1												& 26 cm/s				& 25 mm					&	Yes								& 1/1					&& 22.434 & 12.052				&& 5.429 & 0.676				&& 4.31  & 3.84					&& 4.569  & 2.530	\\
+																				&															& SLAM 2												& 19 cm/s				& 25 mm					&	Yes								& 1/1					&& 19.391 & 12.568				&& 5.518 & 0.818				&& 5.09  & 4.11					&& 4.650  & 2.180	\\
+																				&															& SLAM 3												& 16 cm/s				& 25 mm					&	Yes								& 1/1					&& 17.480 & 8.895				&& 5.455 & 0.732				&& 4.15  & 4.26					&& 4.388  & 2.526	\\ \tabucline[0.5pt on 3pt off 2pt]{1-3}
+		\multirow{6}{0.05\textwidth}{\centering Guardian simulator (Gazebo)} 	& \multirow{2}{0.05\textwidth}{\centering Static} 			& \multirow{6}{0.05\textwidth}{\centering Wall follower}& 5 cm/s 				& 2 mm					&	Yes								& 2/2 					&& 2.642  & 0.463 				&& 0.016 & 0.023 				&& 0.0   & 0.0  				&& 5.723  & 1.868 	\\
+																				&  															&  														& 30 cm/s 				& 2 mm					&	Yes								& 2-4/2					&& 4.654  & 3.893 				&& 0.044 & 0.070 				&& 0.0   & 0.0  				&& 7.784  & 3.178 	\\ \tabucline[0.5pt on 3pt off 2pt]{2-2}
+																				& \multirow{2}{0.05\textwidth}{\centering Cluttered} 		&  														& 5 cm/s 				& 2 mm					&	Yes								& 2/2					&& 2.912  & 0.856 				&& 0.020 & 0.026 				&& 25.05 & 13.30 				&& 11.889 & 9.084 	\\
+																				&  															& 														& 30 cm/s 				& 2 mm					&	Yes								& 2-4/2					&& 6.092  & 3.834 				&& 0.096 & 0.085 				&& 25.65 & 11.02 				&& 23.925 & 27.959 	\\ \tabucline[0.5pt on 3pt off 2pt]{2-2}
+																				& \multirow{2}{0.05\textwidth}{\centering Cluttered dynamic}&  														& 5 cm/s 				& 2 mm					&	Yes								& 2/2					&& 4.593  & 3.802 				&& 0.069 & 0.072 				&& 33.33 & 9.88  				&& 22.217 & 32.408 	\\
+																				&  															&  														& 30 cm/s 				& 2 mm					&	Yes								& 2/2					&& 5.897  & 4.452 				&& 0.095 & 0.104 				&& 27.28 & 13.04 				&& 24.409 & 33.459 	\\
 		\hline
 	\end{tabu}
 	\label{tab:localization-system-evaluation_3-dof-results}
 	
 	\bigskip
 	
-	\caption{3 \glsentrytext{dof} odometry and \glsentrytext{amcl} results}
+	\caption{3 \glsentrytext{dof} odometry and \glsentrytext{amcl} localization test results}
 	\begin{tabu} to \textwidth { X[m,c] X[m,c] X[m,c] X[1.7m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] X[0.01m,c] X[m,c] X[m,c] }
 		\hline
 		\multicolumn{5}{c}{Test conditions} && \multicolumn{2}{c}{Odometry translation error (mm)} && \multicolumn{2}{c}{Odometry rotation error (degrees)} && \multicolumn{2}{c}{\glsentrytext{amcl} translation error (mm)} && \multicolumn{2}{c}{\glsentrytext{amcl} rotation error (degrees)} \\
@@ -67,9 +69,11 @@ Given that \gls{ros} outputs laser scans (an entire slice of laser measurements 
 
 The laser scan deformation is negligible when the robot is moving very slowly. However, when traveling at higher speeds, the point cloud deformation poses a serious issue for map matching algorithms, and the usage of spherical linear interpolation is very important to mitigate it.
 
-In \Cref{fig:localization-system-evaluation_laser-deformation-1} can be seen that the laser measurements in front of the robot were deformed outwards, causing the points to be projected outside both walls. \Cref{fig:localization-system-evaluation_laser-deformation-2} shows a similar effect, which is now very noticeable since the first laser measurement isn't close to the last one. These deformations were severely diminished when the laser spherical linear interpolation was used (as can be seen in \cref{fig:localization-system-evaluation_laser-deformation-1-corrected,fig:localization-system-evaluation_laser-deformation-2-corrected} respectively.
+\Cref{fig:localization-system-evaluation_laser-deformation-1,fig:localization-system-evaluation_laser-deformation-2} were retrieved using the Jarvis robot with velocities of 50-30-50-10 cm/s and without using the spherical linear interpolation module. \Cref{fig:localization-system-evaluation_laser-deformation-1-corrected,fig:localization-system-evaluation_laser-deformation-2} were taken from the same test but now using the spherical linear interpolation module. In \Cref{fig:localization-system-evaluation_laser-deformation-1} can be seen that the laser measurements in front of the robot were deformed outwards, causing the points to be projected outside both walls. \Cref{fig:localization-system-evaluation_laser-deformation-2} shows a similar effect, which is now very noticeable since the first laser measurement isn't close to the last one. These deformations were severely diminished when the laser spherical linear interpolation module was used (as can be seen in \cref{fig:localization-system-evaluation_laser-deformation-1-corrected,fig:localization-system-evaluation_laser-deformation-2-corrected} respectively.
 
-The laser assembly parameters present in \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl} as "Nº scans / Nº lasers" have the meaning of how many laser scans were being merged into each published \emph{sensor\_msgs::PointCloud2} and from how many sensors those lasers scans were being generated. As such, a configuration of "2-4/2" means that the laser assembler was merging between 2 and 4 lasers scans depending on the velocity of the robot, and these laser scans were being generated by two \glspl{lidar} sensors (one in the front and another in the back of the robot).
+Analyzing the tests in \cref{tab:localization-system-evaluation_3-dof-results} associated to the \crefrange{fig:localization-system-evaluation_laser-deformation-1}{fig:localization-system-evaluation_laser-deformation-2-corrected} it can be seen that using the spherical linear interpolation module allowed to reduce the mean (from 8.88 mm to 6.42 mm) and standard deviation (from 8.74 mm to 3.99 mm) of the translation error and also reduced the mean (from 0.42º to 0.39º) and standard deviation (from 0.14º to 0.10º) of the rotation error. Moreover, given that the correction of deformation gives a point cloud more similar to the map, the usage of the spherical linear interpolation module also allowed to reduced the global computation time (mean from 14.83 ms to 13.38 ms and standard deviation from 23.09 ms to 13.32 ms).
+
+The laser assembly parameters present in \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl} as "Nº scans / Nº lasers" have the meaning of how many laser scans were being merged into each published \emph{sensor\_msgs::PointCloud2} and from how many sensors those lasers scans were being generated. As such, a configuration of "2-4/2" means that the laser assembler was merging between 2 (moving fast) and 4 (moving slow) lasers scans depending on the velocity of the robot, and these laser scans were being generated by two \glspl{lidar} sensors (one in the front and another in the back of the robot).
 
 
 \begin{figure}[H]
@@ -105,106 +109,17 @@ The laser assembly parameters present in \cref{tab:localization-system-evaluatio
 
 \subsection{Point cloud preprocessing}
 
-The statistical error of the lasers can be mitigated by merging several laser scans before performing a point cloud registration. This is based on the fact that a considerable amount of laser noise results in measurements oscillating around the true distance to the obstacles, and as such, the effective measurement error can be significantly reduced by retrieving the centroids of a voxel grid applied over the laser data. However, assembling too much laser scans can lead to worse pose tracking if the robot is moving at high speeds, because the lasers would be projected into the map frame with a high position error (because odometry accuracy decreases when the robot speed increases and the localization system will not correct it). As such, the implemented laser assembler supports dynamic reconfiguration of the number of laser scans to assemble (or the period of assembly time) based on the robot estimated velocity. This feature besides improving the pose tracking, it also allows a navigation supervisor to regulate the rate at which the localization system operates. This can be very useful for mobile manipulators because the localization system can have a high update rate when the robot is moving fast and a low update rate when it is moving slower or when it is stopped. This allows a more efficient usage of the platform hardware resources while also improving the localization system accuracy.
+The statistical error of the lasers can be mitigated by merging several laser scans before performing a point cloud registration. This is based on the fact that a considerable amount of laser noise results in measurements oscillating around the true distance to the obstacles, and as such, the effective measurement error can be significantly reduced by retrieving the centroids of a voxel grid applied over the laser data. However, assembling too much laser scans can lead to worse pose tracking if the robot is moving at high speeds, because the lasers would be projected into the map frame with a high position error (because odometry accuracy decreases when the robot speed increases and the localization system will not correct it). As such, the implemented laser assembler supports dynamic reconfiguration of the number of laser scans to assemble (or the period of assembly time) based on the robot estimated velocity. This feature besides improving the pose tracking, it also allows a navigation supervisor to regulate the rate at which the localization system operates. This can be very useful for mobile robot manipulators because the localization system can have a high update rate when the robot is moving fast and a low update rate when it is moving slower or when it is stopped. This allows a more efficient usage of the platform hardware resources while also improving the localization system accuracy.
 
-Besides reducing the sensor measurement errors, this processing stage also allows the removal of laser shadow points caused by veiling, or small cluster of points that may be associated with temporary objects / people. However these filters can take some time to compute given the intensive usage of point neighbors searches. As such, voxel / random down-sampling can be enough to control the computational resources that will be required by the registration algorithms while also improving robustness against sensor noise.
-
-
-\subsection{Mapping}
-
-Any self-localization system requires a map to estimate the pose of the robot when using exteroceptive information. If such map doesn't exist, then the first live point cloud can be considered as the initial map, and then it can be updated dynamically as new sensor data is processed.
-
-The dynamic and incremental map update capability of the \gls{drl} system can be used to register the full sensor point clouds or only the inliers / outliers. Full integration is useful when starting a map from scratch (example in \Cref{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}). Partial integration can be useful when there is a highly detailed map (for example generated from a \gls{cad} model or with other high accuracy mapping system) and we only want to add or remove information from it, such as integrating new large objects and opening doors in the map (examples from \crefrange{fig:localization-system-evaluation_indoor-10mm}{fig:localization-system-evaluation_indoor-10mm-mapping-partial-integration}). Partial integration besides reducing the computational resources required it also allows to keep the detail of the original map (by avoiding deformations due to sensor measurement noise). This can be clearly seen in \Cref{fig:localization-system-evaluation_lab-10mm-dynamic} in which the sensor noise polluted the walls of the original map (given that the map cell resolution was much smaller than the mean sensor noise). By performing selective mapping this problem was avoided in the map present in \Cref{fig:localization-system-evaluation_indoor-10mm-dynamic} (by inserting on the map only unknown zones while keeping the walls generated from the \gls{cad} model untouched).
-
-Looking at planar structures from \crefrange{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}{fig:localization-system-evaluation_gmapping-2.5cm-1.0-bag-speed} it can be seen that the \gls{drl} system was able to achieve equal or even better mapping results than the GMapping\footnote{\url{http://wiki.ros.org/gmapping}} \gls{slam} system and even the ground truth provided by the Raptor-E cameras (that seems to be less suitable for mapping than both the \gls{drl} system and the GMapping \gls{ros} package).
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.43\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/drl-corrected}
-	\caption{Map manually corrected with 25 mm cell resolution (based on \Cref{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}) }
-	\label{fig:localization-system-evaluation_drl-corrected}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/drl-2.5cm-1.0-bag-speed}
-	\caption{Map made with the localization system using full integration in conjunction with OctoMap}
-	\label{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}
-\end{figure}
-
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/ground-truth-2.5cm-0.245-time-offset}
-	\caption{Map made using the ground truth poses provided by the Raptor-E cameras}
-	\label{fig:localization-system-evaluation_ground-truth-2.5cm-0.245-time-offset}
-\end{figure}
-
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/gmapping-2.5cm-0.1-bag-speed}
-	\caption{Map made with the GMapping package playing the rosbag at 10\% speed}
-	\label{fig:localization-system-evaluation_gmapping-2.5cm-0.1-bag-speed}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/gmapping-2.5cm-1.0-bag-speed}
-	\caption{Map made with the GMapping package playing the rosbag in real time}
-	\label{fig:localization-system-evaluation_gmapping-2.5cm-1.0-bag-speed}
-\end{figure}
-
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm}
-	\caption{Map of structured environment generated using a CAD model}
-	\label{fig:localization-system-evaluation_indoor-10mm}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm-mapping-partial-integration}
-	\caption{Updated map of structured environment using partial integration (only points that were not close to the walls were integrated)}
-	\label{fig:localization-system-evaluation_indoor-10mm-mapping-partial-integration}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm-mapping-full-integration}
-	\caption{Updated map of structured environment using full integration (all registered were integrated)}
-	\label{fig:localization-system-evaluation_indoor-10mm-mapping-full-integration}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm-mapping}
-	\caption{Mapping of the structured environment using full integration (all registered were integrated)}
-	\label{fig:localization-system-evaluation_indoor-10mm-mapping}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/lab-10mm}
-	\caption{RoboCup field map (manually corrected)}
-	\label{fig:localization-system-evaluation_lab-10mm}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/lab-10mm-dynamic}
-	\caption{Updated map of RoboCup field using full integration (starting with the map from \Cref{fig:localization-system-evaluation_lab-10mm})}
-	\label{fig:localization-system-evaluation_lab-10mm-dynamic}
-\end{figure}
+Besides reducing the sensor measurement errors, this processing stage also allows the removal of laser shadow points caused by veiling, or small cluster of points that may be associated with temporary objects / people. However these filters can take some time to compute given the intensive usage of point neighbors searches. For typical usage scenarios of a mobile robot manipulator, the voxel grid and random sampling filters are usually enough to control the computational resources that will be required by the registration algorithms while also improving robustness against sensor noise.
 
 
 
 \subsection{Point cloud registration}
 
-Looking at the results from \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl}, the poses from \Cref{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-scans-paths}, the laser assembly figures shown in \cref{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-scans-drl-cumulative,fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-scans-amcl-cumulative} and the translation / rotation error graphs presented from \crefrange{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-translation-error-amcl}{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-rotation-error} (from the Jarvis test in the complex path at high velocities), it can be seen that the localization system can register point clouds with much more accuracy than \gls{amcl} (even when using over 5000 particles). The only problems that seem to affect the registration algorithms are the point cloud deformation (usually when there is unreliable odometry information, which typically occurs when the robot is moving with high velocities / accelerations), laser measurements errors, unknown objects close to the known reference point cloud and also low resolution maps.
+Looking at the results from \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl}, the poses from \Cref{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-scans-paths}, the laser assembly figures shown in \cref{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-scans-drl-cumulative,fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-scans-amcl-cumulative} and the translation / rotation error graphs presented from \crefrange{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-translation-error-amcl}{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-rotation-error} (from the Jarvis test in the complex path at high velocities), it can be seen that the localization system can register point clouds with much more accuracy than the \gls{amcl} \gls{ros} package (\gls{amcl} was using at most 5000 particles). For the test shown in \cref{fig:localization-system-evaluation_complex-path-with-outliers-50-30-50-10cm-per-sec-velocity-1-4-scans-paths}, the \gls{drl} system was 13.12 times more accurate than the \gls{amcl} package in computing the robot position (achieved 6.422 mm of mean translation error while \gls{amcl} had 84.23 mm) and was also 1.5 times more accurate than the \gls{amcl} package in computing the robot orientation (achieved 0.397º of mean rotation error while \gls{amcl} had 0.595º).
 
-The localization system can tolerate these problems by having a default pipeline configuration for the normal operation of the robot, another for temporary tracking recovery and yet another for initial pose estimation.
+The most common problems that seemed to affect the registration algorithms of the \gls{drl} system were the point cloud deformation (usually when there is unreliable odometry information, which typically occurs when the robot is moving with high velocities / accelerations), laser measurements errors, unknown objects close to the known reference point cloud and also low resolution maps. The localization system can tolerate these problems by having a default pipeline configuration for the normal operation of the robot, another for temporary tracking recovery and yet another for initial pose estimation.
 
 The switch between the localization system operation modes using the point cloud registration analysis proved to be a very intuitive and fast process to setup and the overall system configurations seemed to be generic enough to be reused in several types of environments, with different robots equipped with varying types of sensors. Such ease of configuration allows the fast deployment of robots and gives a high confidence that the localization system will remain accurate even in challenging environments. This is not the case with systems such as \gls{amcl}, given that they are very dependent on the odometry and laser models, and as such, require constant retuning when one of these models change.
 
@@ -328,6 +243,95 @@ The global computation time is mostly associated with the point cloud registrati
 \end{figure}
 
 
+\subsection{Mapping}
+
+Any self-localization system requires a map to estimate the pose of the robot when using exteroceptive information. If such map doesn't exist, then the first live point cloud can be considered as the initial map, and then it can be updated dynamically as new sensor data is processed.
+
+The dynamic and incremental map update capability of the \gls{drl} system can be used to register the full sensor point clouds or only the inliers / outliers. Full integration is useful when starting a map from scratch (example in \Cref{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}). Partial integration can be useful when there is a highly detailed map (for example generated from a \gls{cad} model or with other high accuracy mapping system) and we only want to add or remove information from it, such as integrating new large objects and opening doors in the map (examples from \crefrange{fig:localization-system-evaluation_indoor-10mm}{fig:localization-system-evaluation_indoor-10mm-mapping-partial-integration}). Partial integration besides reducing the computational resources required it also allows to keep the detail of the original map (by avoiding deformations due to sensor measurement noise). This can be clearly seen in \Cref{fig:localization-system-evaluation_lab-10mm-dynamic} in which the sensor noise polluted the walls of the original map (given that the map cell resolution was much smaller than the mean sensor noise). By performing selective mapping this problem was avoided in the map present in \Cref{fig:localization-system-evaluation_indoor-10mm-dynamic} (by inserting on the map only unknown zones while keeping the walls generated from the \gls{cad} model untouched).
+
+Looking at planar structures from \crefrange{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}{fig:localization-system-evaluation_gmapping-2.5cm-1.0-bag-speed} it can be seen that the \gls{drl} system was able to achieve equal or even better mapping results than the GMapping\footnote{\url{http://wiki.ros.org/gmapping}} \gls{slam} system and even the ground truth provided by the Raptor-E cameras (that seems to be less suitable for mapping than both the \gls{drl} system and the GMapping \gls{ros} package).
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.43\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/drl-corrected}
+	\caption{Map manually corrected with 25 mm cell resolution (based on \Cref{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}) }
+	\label{fig:localization-system-evaluation_drl-corrected}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/drl-2.5cm-1.0-bag-speed}
+	\caption{Map made with the localization system using full integration in conjunction with OctoMap}
+	\label{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/ground-truth-2.5cm-0.245-time-offset}
+	\caption{Map made using the ground truth poses provided by the Raptor-E cameras}
+	\label{fig:localization-system-evaluation_ground-truth-2.5cm-0.245-time-offset}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/gmapping-2.5cm-0.1-bag-speed}
+	\caption{Map made with the GMapping package playing the rosbag at 10\% speed}
+	\label{fig:localization-system-evaluation_gmapping-2.5cm-0.1-bag-speed}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/industrial-hall/gmapping-2.5cm-1.0-bag-speed}
+	\caption{Map made with the GMapping package playing the rosbag in real time}
+	\label{fig:localization-system-evaluation_gmapping-2.5cm-1.0-bag-speed}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm}
+	\caption{Map of structured environment generated using a CAD model}
+	\label{fig:localization-system-evaluation_indoor-10mm}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm-mapping-partial-integration}
+	\caption{Updated map of structured environment using partial integration (only points that were not close to the walls were integrated)}
+	\label{fig:localization-system-evaluation_indoor-10mm-mapping-partial-integration}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm-mapping-full-integration}
+	\caption{Updated map of structured environment using full integration (all registered were integrated)}
+	\label{fig:localization-system-evaluation_indoor-10mm-mapping-full-integration}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/indoor-10mm-mapping}
+	\caption{Mapping of the structured environment using full integration (all registered were integrated)}
+	\label{fig:localization-system-evaluation_indoor-10mm-mapping}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/lab-10mm}
+	\caption{RoboCup field map (manually corrected)}
+	\label{fig:localization-system-evaluation_lab-10mm}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.45\textwidth]{localization-system-evaluation/tests-3dof/maps/lab-10mm-dynamic}
+	\caption{Updated map of RoboCup field using full integration (starting with the map from \Cref{fig:localization-system-evaluation_lab-10mm})}
+	\label{fig:localization-system-evaluation_lab-10mm-dynamic}
+\end{figure}
+
+
 
 %\clearpage
 
@@ -381,59 +385,6 @@ In the tests presented in \Cref{tab:localization-system-evaluation_6-dof-results
 %\end{figure}
 
 
-\subsection{Mapping}
-
-The \gls{drl} system can perform mapping of the environment and is able to build very detailed point clouds. These point clouds can be continuously re-sampled with the Moving Least Squares algorithm (example in \Cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-slam}) in order to reconstruct the surfaces of the environment and attenuate the double wall effects and high sensor noise.
-
-Besides the internal mapping capabilities of the \gls{drl} system, it can also be paired with the OctoMap \cite{Hornung2013} library in order to perform probabilistic integration of sensor data and be able to remove missing objects from the reference point cloud.
-
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-1-gt}
-	\end{subfigure}
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-2-gt}
-	\end{subfigure}
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-3-gt}
-	\end{subfigure}
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-4-gt}
-	\end{subfigure}
-	\caption{3D SLAM using the ground truth poses}
-	\label{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-gt-slam}
-\end{figure}
-
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-1}
-	\end{subfigure}
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-2}
-	\end{subfigure}
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-3}
-	\end{subfigure}
-	\begin{subfigure}[ht]{0.47\textwidth}
-		\centering
-		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-4}
-	\end{subfigure}
-	\caption{3D SLAM using the localization system with surface reconstruction}
-	\label{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-slam}
-\end{figure}
-
-
 
 \subsection{Point cloud registration}
 
@@ -441,21 +392,21 @@ Looking at \Cref{tab:localization-system-evaluation_6-dof-results} and \crefrang
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.44\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/drl-cumulative}
+	\includegraphics[width=0.33\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/drl-cumulative}
 	\caption{Point clouds assembled on top of the map using the DRL poses (for the top part of the figure: green arrows $\rightarrow$ ground truth poses, red arrows $\rightarrow$ DRL poses)}
 	\label{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-cumulative}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.44\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/ethzasl-icp-mapping-cumulative}
+	\includegraphics[width=0.33\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/ethzasl-icp-mapping-cumulative}
 	\caption{Point clouds assembled on top of the map using the ethzasl\_icp\_mapper poses (for the top part of the figure: green arrows $\rightarrow$ ground truth poses, red arrows $\rightarrow$ ethzasl\_icp\_mapper poses)}
 	\label{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-ethzasl-icp-mapping-cumulative}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.44\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/ground-truth-cumulative}
+	\includegraphics[width=0.33\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/ground-truth-cumulative}
 	\caption{Point clouds assembled on top of the map using the ground truth poses}
 	\label{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-gt-cumulative}
 \end{figure}
@@ -463,21 +414,21 @@ Looking at \Cref{tab:localization-system-evaluation_6-dof-results} and \crefrang
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={0 0 0 1cm}, clip, width=0.49\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/robot-movement-path-combined-xy}
+	\includegraphics[width=0.3\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/robot-movement-path-combined-xy}
 	\caption{2D plot XY Poses estimated in the 6 DoF fly test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-fly-robot-movement-path-combined-xy}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={0 0 0 1cm}, clip, width=0.37\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/robot-movement-path-combined-xz}
+	\hspace*{0.25cm}\includegraphics[width=0.28\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/robot-movement-path-combined-xz}
 	\caption{2D plot XZ Poses estimated in the 6 DoF fly test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-fly-robot-movement-path-combined-xz}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={1.5cm 0 0 1.5cm}, clip, width=0.33\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/robot-movement-path-combined-3d}
+	\includegraphics[trim={2.5cm 0 0 1.5cm}, clip, width=0.49\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/robot-movement-path-combined-3d}
 	\caption{3D plot XYZ Poses estimated in the 6 DoF fly test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-fly-robot-movement-path-combined-3d}
 \end{figure}
@@ -485,21 +436,21 @@ Looking at \Cref{tab:localization-system-evaluation_6-dof-results} and \crefrang
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={0 0 0 1cm}, clip, width=0.47\textwidth]{localization-system-evaluation/tests-6dof/kinect-rotations-10cm-per-sec-velocity/robot-movement-path-combined-xy}
+	\includegraphics[width=0.355\textwidth]{localization-system-evaluation/tests-6dof/kinect-rotations-10cm-per-sec-velocity/robot-movement-path-combined-xy}
 	\caption{2D plot XY Poses estimated in the 6 DoF rotations test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-rotations-robot-movement-path-combined-xy}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={0 0 0 1cm}, clip, width=0.37\textwidth]{localization-system-evaluation/tests-6dof/kinect-rotations-10cm-per-sec-velocity/robot-movement-path-combined-xz}
+	\hspace*{0.25cm}\includegraphics[width=0.34\textwidth]{localization-system-evaluation/tests-6dof/kinect-rotations-10cm-per-sec-velocity/robot-movement-path-combined-xz}
 	\caption{2D plot XZ Poses estimated in the 6 DoF rotations test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-rotations-robot-movement-path-combined-xz}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={1.5cm 0 0 1.5cm}, clip, width=0.49\textwidth]{localization-system-evaluation/tests-6dof/kinect-rotations-10cm-per-sec-velocity/robot-movement-path-combined-3d}
+	\includegraphics[trim={2.5cm 0 0 1.5cm}, clip, width=0.47\textwidth]{localization-system-evaluation/tests-6dof/kinect-rotations-10cm-per-sec-velocity/robot-movement-path-combined-3d}
 	\caption{3D plot XYZ Poses estimated in the 6 DoF rotations test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-rotations-robot-movement-path-combined-3d}
 \end{figure}
@@ -507,21 +458,21 @@ Looking at \Cref{tab:localization-system-evaluation_6-dof-results} and \crefrang
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={0 0 0 1cm}, clip, width=0.47\textwidth]{localization-system-evaluation/tests-6dof/kinect-translations-20cm-per-sec-velocity/robot-movement-path-combined-xy}
+	\includegraphics[width=0.27\textwidth]{localization-system-evaluation/tests-6dof/kinect-translations-20cm-per-sec-velocity/robot-movement-path-combined-xy}
 	\caption{2D plot XY Poses estimated in the 6 DoF translations test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-translations-robot-movement-path-combined-xy}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={0 0 0 1cm}, clip, width=0.37\textwidth]{localization-system-evaluation/tests-6dof/kinect-translations-20cm-per-sec-velocity/robot-movement-path-combined-xz}
+	\hspace*{0.25cm}\includegraphics[width=0.26\textwidth]{localization-system-evaluation/tests-6dof/kinect-translations-20cm-per-sec-velocity/robot-movement-path-combined-xz}
 	\caption{2D plot XZ Poses estimated in the 6 DoF translations test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-translations-robot-movement-path-combined-xz}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[trim={1.5cm 0 0 1.5cm}, clip, width=0.37\textwidth]{localization-system-evaluation/tests-6dof/kinect-translations-20cm-per-sec-velocity/robot-movement-path-combined-3d}
+	\includegraphics[trim={2.5cm 0 0 1.5cm}, clip, width=0.42\textwidth]{localization-system-evaluation/tests-6dof/kinect-translations-20cm-per-sec-velocity/robot-movement-path-combined-3d}
 	\caption{3D plot XYZ Poses estimated in the 6 DoF translations test by the ground truth (green) and DRL (blue) and ethzasl\_icp\_mapper (red)}
 	\label{fig:localization-system-evaluation_kinect-translations-robot-movement-path-combined-3d}
 \end{figure}
@@ -673,3 +624,55 @@ Comparing \Cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-veloc
 %	\caption{Probability distributions for the ethzasl\_icp\_mapper global computation time in the 6 DoF translations test}
 %	\label{fig:localization-system-evaluation_kinect-translations-20cm-per-sec-velocity-computation-time-asl}
 %\end{figure}
+
+\subsection{Mapping}
+
+The \gls{drl} system can perform mapping of the environment and is able to build very detailed point clouds. These point clouds can be continuously re-sampled with the Moving Least Squares algorithm (example in \Cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-slam}) in order to reconstruct the surfaces of the environment and attenuate the double wall effects and high sensor noise.
+
+Besides the internal mapping capabilities of the \gls{drl} system, it can also be paired with the OctoMap \cite{Hornung2013} library in order to perform probabilistic integration of sensor data and be able to remove missing objects from the reference point cloud.
+
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[ht]{0.4\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-1-gt}
+	\end{subfigure}
+	\begin{subfigure}[ht]{0.4\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-2-gt}
+	\end{subfigure}
+%	\begin{subfigure}[ht]{0.4\textwidth}
+%		\centering
+%		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-3-gt}
+%	\end{subfigure}
+	\begin{subfigure}[ht]{0.4\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-4-gt}
+	\end{subfigure}
+	\caption{3D SLAM using the ground truth poses}
+	\label{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-gt-slam}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[ht]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-1}
+	\end{subfigure}
+	\begin{subfigure}[ht]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-2}
+	\end{subfigure}
+%	\begin{subfigure}[ht]{0.45\textwidth}
+%		\centering
+%		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-3}
+%	\end{subfigure}
+	\begin{subfigure}[ht]{0.45\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-4}
+	\end{subfigure}
+	\caption{3D SLAM using the localization system with surface reconstruction}
+	\label{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-slam}
+\end{figure}
