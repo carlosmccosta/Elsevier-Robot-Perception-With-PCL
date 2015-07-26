@@ -182,12 +182,12 @@ A given live point can be classified as outlier if the corresponding closest poi
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[ht]{0.49\textwidth}
+	\begin{subfigure}[ht]{0.35\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{localization-system/outlier-detection-gazebo}
 		\caption{Gazebo overview}
 	\end{subfigure}
-	\begin{subfigure}[ht]{0.49\textwidth}
+	\begin{subfigure}[ht]{0.35\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{localization-system/outlier-detection}
 		\caption{RViz overview}
@@ -216,6 +216,9 @@ If several consecutive pose estimations are discarded (or a given time has passe
 
 After performing a successful pose estimation, the \gls{drl} system can update the localization map by either integrating only the unknown objects or the full registered point cloud (it can also be used in conjunction with OctoMap \cite{Hornung2013} ir order to perform probabilistic map updates).
 
-Integrating only the unknown objects is the recommended approach when there is a known map and the environment is expected to change gradually. This is also more efficient as only the points that need to be integrated are processed and ray traced in OctoMap. Moreover, integrating only new sections avoids map degradation or pollution (by sensor noise) of the detail of static areas (that were provided by \gls{cad} models). Besides not damaging static map areas, it also allows to maintain the map reference coordinate system, keeping valid previous navigation waypoints.
+Integrating only the unknown objects is the recommended approach when there is a known map and the environment is expected to change gradually. This is also more efficient as only the points that need to be integrated are processed and ray traced in OctoMap. Moreover, integrating only new sections avoids map degradation or pollution (by sensor noise) of the detail of static areas (that were provided by \gls{cad} models).
 
- On the other hand, integrating the full registered cloud can be desirable if the map of the environment is very incomplete, very outdated or expected to change considerably during the operation of the robot.
+On the other hand, integrating the full registered point cloud can be desirable if the map of the environment is very incomplete, very outdated or expected to change considerably during the operation of the robot.
+
+Introducing new elements in the localization map may change slightly the reference coordinate system. As such, the \gls{drl} system in conjunction with OctoMap can use a static map for localization and continuously update the navigation map in order to keep valid previous localization / navigation waypoints and also allow better path planning for longer robot travels (given that some map sections might be obstructed by objects or new pathways might have become available).
+
