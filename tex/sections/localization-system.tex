@@ -1,6 +1,6 @@
 \section{Localization system}\label{sec:localization-system}
 
-This section details the ROS implementation of the proposed 3/6 DoF \gls{drl}\footnote{\url{https://github.com/carlosmccosta/dynamic_robot_localization}}. It starts with an overview of the main processing stages and then details the control flow and algorithms within the localization pipeline.
+This section details the ROS implementation of the proposed 3/6 DoF \gls{drl}\footnote{\url{https://github.com/carlosmccosta/dynamic_robot_localization}}. It starts with an overview of the main processing stages and then details the control flow and algorithms within the processing pipeline.
 
 \subsection{Overview}
 
@@ -14,7 +14,7 @@ It supports two configurable processing pipelines in order to allow fast deploym
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[trim={0.2cm 0.2cm 0.2cm 0.2cm}, clip, width=0.49\textwidth]{localization-system/localization-system-modules}
+	\includegraphics[width=0.49\textwidth]{localization-system/localization-system-modules}
 	\caption{DRL system modules overview}
 	\label{fig:localization-system_localization-system-brief-overview}
 \end{figure}
@@ -31,19 +31,19 @@ It supports two configurable processing pipelines in order to allow fast deploym
 
 The self-localization system was designed to allow fast reconfiguration\footnote{\url{https://github.com/carlosmccosta/dynamic_robot_localization/blob/hydro-devel/yaml/schema/drl_configs.yaml}} and parameterization through the use of yaml files and the \gls{ros} parameter server. This gives the possibility to quickly tune the localization system to the specific needs of a given mobile platform moving in a particular environment, in order to use the least amount of computational resources possible and without requiring any reprogramming or source code modification. Nevertheless, the system can use a generic configuration if hardware resources are not a concern.
 
-In a typical configuration (following the \emph{Yes} paths of the activity diagram in \Cref{fig:localization-system_localization-system-overview}), the first time the localization system is used, it receives a raw reference point cloud that is preprocessed and saved to long term memory along with its associated keypoints and keypoint descriptors. This allows a much faster startup the next time the localization system is initialized. After having a reference point cloud, the localization system will estimate the robot pose periodically by analyzing the live point cloud sensor data. This data can be preprocessed with several filters and can be associated with computed surface normals. The robot pose estimation is performed by applying a matrix transformation correction to the current robot pose and is based on the registration of the live point cloud with the know map. This registration can use a tracking algorithm configuration tuned for efficiency and a second configuration for tracking recovery purposes. These tracking algorithms require a initial pose estimation, and as such, if one isn't available, a third configuration can be employed to estimate the global position of the robot using geometric features of the environment. The switch between these configuration is based on the analysis of the registered cloud metrics, such as outlier percentage, inliers root mean square error, inliers angular distribution and the registration corrections performed on the live point cloud. After successfully performing the robot pose estimation, the map can be updated by either integrating the full registered point cloud, its inliers or its outliers. Finally, like most \gls{ros} nodes, the localization system will stop its execution when it receives a termination signal request.
+In a typical configuration (following the \emph{Yes} paths of the activity diagram in \Cref{fig:localization-system_localization-system-overview}), the first time the localization system is used, it receives a raw reference point cloud that is preprocessed and saved to long term memory along with its associated keypoints and keypoint descriptors. This allows a much faster startup the next time the localization system is initialized. After having a reference point cloud, the localization system will estimate the robot pose periodically by analyzing the live point cloud sensor data. This data can be preprocessed with several filters and can be associated with computed surface normals. The robot pose estimation is performed by applying a matrix transformation correction to the current robot pose and is based on the registration of the live point cloud with the known map. This registration can use a tracking algorithm configuration tuned for efficiency and a second configuration for tracking recovery purposes. These tracking algorithms require a initial pose estimation, and as such, if one isn't available, a third configuration can be employed to estimate the global position of the robot using geometric features of the environment. The switch between these configuration is based on the analysis of the registered cloud metrics, such as outlier percentage, inliers root mean square error, inliers angular distribution and the registration corrections performed on the live point cloud. After successfully performing the robot pose estimation, the map can be updated by either integrating the full registered point cloud, its inliers or its outliers. Finally, like most \gls{ros} nodes, the localization system will stop its execution when it receives a termination signal request.
 
 The next subsections explain in detail the architecture and algorithms used in each of the processing modules present in \cref{fig:localization-system_localization-system-brief-overview,fig:localization-system_localization-system-overview}.
 
 
 \subsubsection{Reference map}
 
-The reference point cloud can be loaded from a \gls{cad} file, point cloud file or dynamically arrive trough a \gls{ros} topic as either a 3 \gls{dof} \emph{nav\_msgs::OccupancyGrid} or 6 \gls{dof} \emph{sensor\_msgs::PointCloud2}. This allows a localization supervisor to give only sections of a global map in order to use the least amount of memory and processing time (very large maps have deeper search structures, such as kd-trees, and should be avoided in order keep the number of tree levels within reasonable values).
+The reference point cloud can be loaded from a \gls{cad} file, point cloud file or dynamically arrive trough a \gls{ros} topic as either a 3 \gls{dof} \emph{nav\_msgs::OccupancyGrid} or 6 \gls{dof} \emph{sensor\_msgs::PointCloud2}. This allows a localization supervisor to give only sections of a global map in order to use the least amount of memory and processing time (very large maps have deeper search structures, such as kd-trees, and should be avoided in order to keep the number of tree levels within reasonable values).
 
 
 \subsubsection{Point cloud assembly}
 
-The self-localization system can use any sensor that provides point clouds, namely RGB-D / \gls{tof} cameras, \glspl{lidar} and stereo vision systems. Each of these types of sensors have very different operation rates and measurements accuracy. As such, the localization system allows the assembly of several live scans using a circular buffer in order to reduce the impact of sensor noise.
+The self-localization system can use any sensor that provides point clouds, namely RGB-D / \gls{tof} cameras, \glspl{lidar} and stereo vision systems. Each of these types of sensors have very different operation rates and measurements accuracies. As such, the localization system allows the assembly of several live scans using a circular buffer in order to reduce the impact of sensor noise.
 
 For \glspl{lidar}, the system provides a \emph{sensor\_msgs::LaserScan} assembler\footnote{\url{https://github.com/carlosmccosta/laserscan_to_pointcloud}} that converts laser measurements in polar coordinates into Cartesian coordinates and projects the points using spherical linear interpolation (in order to account for laser scan deformation that occurs when the robot is moving and rotating). It can merge scans from several lasers sensors and it will publish the final point cloud after assembling a given number of scans or periodically after a specified duration. These assembly configurations can be changed at runtime based on the robot velocity (for example, when the robot moves slower, more laser scans are assembled for each published point cloud) or through the use of the \gls{ros} dynamic reconfigure \gls{api}, which allows a navigation supervisor to control the rate at which the localization system operates.
 
@@ -72,7 +72,7 @@ The point cloud downsampling is achieved by replacing each voxel cluster with a 
 
 \paragraph{Random sampling}
 
-Random sampling \cite{Vitter1984} is a fast downsampling method that randomly selects points from the input cloud until the specified number of samples is reached (pcl::RandomSample). This has the advantage of using real measures instead of downsampled approximations, but also means it is more sensible to sensor measurements noise. However, for outdoor environments or very complex scenes, using the real measurements can be preferable than using cluster centroids because the voxels may not have the necessary resolution or may have a prohibitive computational cost.
+Random sampling \cite{Vitter1984} is a fast downsampling method that randomly selects points from the input cloud until the specified number of samples is reached (pcl::RandomSample). This has the advantage of using real measures instead of downsampled approximations, but also means it is more sensible to sensor measurements noise. However, for outdoor environments or very complex scenes, using the real measurements might be preferable than using cluster centroids because the voxels may not have the necessary resolution or may have a prohibitive computational cost.
 
 
 \paragraph{Covariance sampling}
@@ -84,9 +84,7 @@ The resultant point cloud has the desired number of points and is stable enough 
 
 \subsubsection{Outlier removal}
 
-Some depth sensors can perform measurements with high accuracy, but they have some limitations that can lead to the creation of outliers \cite{Sotoodeh2006}.
-
-One of those limitations can produce shadow points around objects boundaries. This is due to the fact that a portion of the laser beam may hit the object boundary and other part may hit other areas in the object background. And given that most laser range finders use a weighted sum of several beams, this can yield measurements that are not associated with any real object (outliers). Another issue is related to the angle in which the depth sensor sees the objects areas. If the incidence angle is very low, then it may be difficult to compute its distance and detect if the beam had ambient reflections. This can significant increase the measurements noise or even lead to the creation of outliers. Other common problem is associated with the material properties of the surfaces. For example, objects with very high or very low reflectance, such as metals or glass, can increase the measurements noise. Moreover depending on the combination of surface geometry, material and incidence angle, some objects may even be undetectable by depth sensors.
+Some depth sensors can perform measurements with high accuracy, but they have some limitations that can lead to the creation of outliers \cite{Sotoodeh2006}. One of those limitations can produce shadow points around objects boundaries. This is due to the fact that a portion of the laser beam may hit the object boundaries and other part may hit areas in the object background. And given that most laser range finders use a weighted sum of several beams, this can yield measurements that are not associated with any real object (outliers). Another issue is related to the angle in which the depth sensor sees the objects areas. If the incidence angle is very low, then it may be difficult to compute its distance and detect if the beam had ambient reflections. This can significant increase the measurements noise or even lead to the creation of outliers. Other common problem is associated with the material properties of the surfaces. For example, objects with very high or very low reflectance, such as metals or glass, can increase the measurements noise. Moreover depending on the combination of surface geometry, material and incidence angle, some objects may even be undetectable by depth sensors.
 
 Given the negative effect that outliers have in surface normal computation and registration algorithms, they should be removed in a preprocessing stage. There are several approaches to perform outlier detection and removal \cite{YangZhang2010}, ranging from simple distance thresholds to more robust statistical analysis. The next sections present some of the methods that can be useful in a localization system.
 
@@ -95,14 +93,12 @@ Given the negative effect that outliers have in surface normal computation and r
 
 Given that depth sensors have a minimum and maximum recommended distance for their measurements, it is wise to remove points that are close or beyond these limits. Moreover, it may be useful to remove points that are too close to the sensor, because they may belong to the robot itself and not the environment.
 
-This can be achieved by applying a minimum and maximum threshold to the distances returned by the depth sensor (pcl::CropBox and drl::LaserAssembler).
+This can be achieved by applying a minimum and maximum threshold to the distances returned by the depth sensor (drl::LaserAssembler and pcl::CropBox).
 
 
 \paragraph{Passthrough filter}
 
-A passthrough filter (pcl::PassThrough) can select or remove points according to their properties.
-
-For outlier removal, it can be used to select points that are within a given bounding box (useful when we already know what area of the environment we want to analyze) or remove points that don't have the appropriate intensity or color.
+A passthrough filter (pcl::PassThrough) can select or remove points according to their properties. For outlier removal, it can be used to select points that are within a given bounding box (useful when we already know what area of the environment we want to analyze) or remove points that don't have the appropriate intensity or color.
 
 
 \paragraph{Radius outlier removal filter}
@@ -112,9 +108,7 @@ The radius outlier removal filter (pcl::RadiusOutlierRemoval) deletes points tha
 
 \paragraph{Statistical outlier removal filter}
 
-The statistical outlier removal filter (pcl::StatisticalOutlierRemoval) \cite{Rusu2010a} performs a global analysis of the distances between points and discards the ones that don't follow the global distance distribution.
-
-It is a robust filter that adapts itself to the point cloud density and is very effective in removing shadow points. To do so, it computes the mean distance that each point has to a given number of neighbors and builds a global distance distribution. Then, assuming that the distribution is Gaussian, it discards the points that have a distance higher than a given threshold (that is a percentage of the standard deviation of the distance distribution).
+The statistical outlier removal filter (pcl::StatisticalOutlierRemoval) \cite{Rusu2010a} performs a global analysis of the distances between points and discards the ones that don't follow the global distance distribution. It is a robust filter that adapts itself to the point cloud density and is very effective in removing shadow points. To do so, it computes the mean distance that each point has to a given number of neighbors and builds a global distance distribution. Then, assuming that the distribution is Gaussian, it discards the points that have a distance higher than a given threshold (that is a percentage of the standard deviation of the distance distribution).
 
 
 \subsubsection{Surface and object reconstruction and resampling}\label{subsec:localization_system_surface-reconstruction-resampling}
@@ -207,18 +201,18 @@ The last metrics are the corrections that the registration matrix introduced. Gi
 
 If all these metrics are within acceptable limits, then the robot pose can be computed by applying the matrix correction to the initial pose associated with the live sensor data.
 
-If any of these metrics are not acceptable, then the system can be configured to simply discard this pose estimation and try to estimate the pose in the next sensor data updates or it can apply a tracking recovery attempt with a different registration algorithm (or the same algorithm with different parameters).
+If any of these metrics are not acceptable, then the system can be configured to simply discard this pose estimation and try to estimate the pose in the next sensor data updates or it can apply a tracking recovery attempt with a different registration algorithm (or the same algorithm with different parameters). This tracking recovery can be activated after a given number of failed point cloud registrations or after a specified timeout (this allows to ignore point clouds that are deformed due to the robot motion during acquisition or that have too much outliers).
 
 If several consecutive pose estimations are discarded (or a given time has passed since the last know pose), the system can have a second level of recovery that can be configured to use the initial pose estimation algorithms in order to finally estimate the global robot pose and reset the tracking state.
 
 
 \subsection{Dynamic map update}
 
-After performing a successful pose estimation, the \gls{drl} system can update the localization map by either integrating only the unknown objects or the full registered point cloud (it can also be used in conjunction with OctoMap \cite{Hornung2013} ir order to perform probabilistic map updates).
+After performing a successful pose estimation, the \gls{drl} system can update the localization / navigation map by either integrating only the unknown objects or the full registered point cloud (it can also be used in conjunction with OctoMap \cite{Hornung2013} in order to perform probabilistic map updates).
 
 Integrating only the unknown objects is the recommended approach when there is a known map and the environment is expected to change gradually. This is also more efficient as only the points that need to be integrated are processed and ray traced in OctoMap. Moreover, integrating only new sections avoids map degradation or pollution (by sensor noise) of the detail of static areas (that were provided by \gls{cad} models).
 
 On the other hand, integrating the full registered point cloud can be desirable if the map of the environment is very incomplete, very outdated or expected to change considerably during the operation of the robot.
 
-Introducing new elements in the localization map may change slightly the reference coordinate system. As such, the \gls{drl} system in conjunction with OctoMap can use a static map for localization and continuously update the navigation map in order to keep valid previous localization / navigation waypoints and also allow better path planning for longer robot travels (given that some map sections might be obstructed by objects or new pathways might have become available).
+Introducing new elements in the localization map may change slightly the reference coordinate system. As such, the \gls{drl} system in conjunction with OctoMap can use a static map for localization and continuously update a different map for the navigation system in order to keep valid previous localization / navigation waypoints and also allow better path planning for longer robot travels (given that some map sections might be obstructed by objects or new pathways might have become available).
 

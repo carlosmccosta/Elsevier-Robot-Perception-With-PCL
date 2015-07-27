@@ -1,6 +1,6 @@
 \section{Testing configurations}\label{sec:testing-configurations}
 
-This section presents several test scenarios that were devised to evaluate the implemented localization system. They aim to test the accuracy and robustness of the implementation under different environmental conditions and hardware configurations.
+This section presents several test scenarios that were devised to evaluate the implemented localization system. They aim to test the accuracy and robustness of the \gls{drl} implementation under different environmental conditions and hardware configurations.
 
 
 \subsection{Testing platforms}
@@ -86,7 +86,7 @@ The Gazebo simulation of the Guardian platform was used to create 8 tests in 4 d
 
 \subsection{Testing environments}
 
-The localization system was tested in different environments and used the Jarvis platform in a large room with a RoboCup field, the Pioneer 3-DX in a large industrial hall, the Guardian platform in a simulated indoor environment and a Kinect in a flying arena.
+The localization system was tested in 4 different environments and used the Jarvis platform in a large room with a RoboCup field, the Pioneer 3-DX in a large industrial hall, the Guardian platform in a simulated indoor environment and a Kinect in a flying arena.
 
 
 \subsubsection{Jarvis in RoboCup field}
@@ -115,9 +115,9 @@ The structured environment simulated in Gazebo is a large room with 12.4 meters 
 
 Given that the Guardian mobile manipulator is expected to work on the walls of this environment, several tests were devised with a path following the lower and right wall of the environment.
 
-The first test was done in a static environment (shown in \Cref{fig:localization-system-evaluation_guardian-tests-environment}) clear of unknown objects and was meant to evaluate the best precision that the localization system could achieve.
+The first test was done in a static environment clear of unknown objects (shown in \Cref{fig:localization-system-evaluation_guardian-tests-environment}) and was meant to evaluate the best precision that the localization system could achieve.
 
-The second test was done in a cluttered environment (top of \Cref{fig:localization-system-evaluation_guardian-tests-environment-cluttered}) and was designed to test the robustness of the localization system against static unknown objects, that were placed in the middle of the environment and close to the walls (to block sensor data from reaching known positions and analyze the robustness of matching unknown points).
+The second test was done in a cluttered environment (top of \Cref{fig:localization-system-evaluation_guardian-tests-environment-cluttered}) and was designed to test the robustness of the localization system against static unknown objects that were placed in the middle of the environment and close to the walls (to block sensor data from reaching known positions and analyze the robustness of matching unknown points).
 
 In the third test (middle of \Cref{fig:localization-system-evaluation_guardian-tests-environment-cluttered}) it was added a large block wall (6.5 meters of width, 1.2 meters of height and 0.1 meters of thickness) very close (0.3 meters) to the \gls{cad} reference wall to evaluate the impact of the kd-tree search radius in the robustness of the matching algorithms.
 
@@ -160,7 +160,7 @@ In the last test (bottom of \Cref{fig:localization-system-evaluation_guardian-te
 
 \subsubsection{Pioneer in industrial hall}
 
-One of the environments of the dataset presented in \cite{Sturm2012} is a industrial hall consisting of a large room with 20 meters of length and 12 meters of depth. Four tests were performed with a Pioneer 3-DX in this environment. The first test was a 360º path with a few camera supports in the middle of the room, while the remaining 3 tests were done with several tables and objects spread around in the middle of the room, that significantly reduced the field of view of the robot laser (as can be seen in \Cref{fig:localization-system-evaluation_industrial-hall}).
+One of the environments of the dataset presented in \cite{Sturm2012} is an industrial hall consisting of a large room with 20 meters of length and 12 meters of depth. Four tests were performed with a Pioneer 3-DX in this environment. The first test was a 360º path with a few camera supports in the middle of the room, while the remaining 3 tests were done with several tables and objects spread around in the middle of the room, that significantly reduced the field of view of the robot laser (as can be seen in \Cref{fig:localization-system-evaluation_industrial-hall}).
 
 \begin{figure}[H]
 	\centering
