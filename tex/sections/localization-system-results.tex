@@ -7,7 +7,7 @@ The main results of the 3 \gls{dof} tests performed with the \gls{drl} system (p
 
 Sensor data preprocessing relied on a voxel grid of 50 mm in order to reduce the impact of sensor measurement noise and also control the level of detail of the live point clouds.
 
-The tests with the initial pose estimation subsystem used \gls{sift} for keypoint selection, \gls{fpfh} for keypoint description and the feature matching algorithm described in \Cref{subsec:localization-system_feature-registration} to estimate the initial position and orientation of the robot (\Cref{fig:localization-system-evaluation_jarvis-initial-pose-estimation-sift-fpfh-ransac-gicp-1,fig:localization-system-evaluation_ship-interior-initial-pose-estimation-sift-fpfh-ransac-gicp-1} show the accepted initial poses computed by the \gls{drl} system when it received as initial pose the large red arrows).
+The tests with the initial pose estimation subsystem used \gls{sift} for keypoint selection, \gls{fpfh} for keypoint description and the feature matching algorithm described in \Cref{subsec:localization-system_feature-registration} to estimate the initial position and orientation of the robot (\Cref{fig:localization-system-evaluation_jarvis-initial-pose-estimation-sift-fpfh-ransac-gicp-1,fig:localization-system-evaluation_ship-interior-initial-pose-estimation-sift-fpfh-ransac-gicp-1} show the accepted initial poses computed by the \gls{drl} system when it received as initial pose the large red arrow).
 
 The next sections will provide a brief analysis of the main 3 \gls{dof} results achieved with the \gls{drl} system. They will start by explaining how laser spherical interpolation can improve localization by mitigating point cloud deformation. Later on it will be analyzed the point cloud preprocessing stage and why it should be carefully tuned to the sensors and ambient geometry. Next it will be presented a global analysis of the test results, in which the pose estimation accuracy achieved by the \gls{drl} system will be compared with the ground truth, odometry and the \gls{amcl} \gls{ros} package. Finally it will be analyzed the mapping results and why it is necessary to have accurate environment representations in order to achieve precise localization.
 
@@ -79,17 +79,17 @@ Given that \gls{ros} outputs laser scans (an entire slice of laser measurements 
 
 The laser scan deformation is negligible when the robot is moving very slowly. However, when traveling at higher speeds, the point cloud deformation poses a serious issue for map matching algorithms, and the usage of spherical linear interpolation is very important to mitigate it.
 
-\Cref{fig:localization-system-evaluation_laser-deformation-1,fig:localization-system-evaluation_laser-deformation-2} were retrieved using the Jarvis robot with velocities of 50-30-50-10 cm/s and without using the spherical linear interpolation module. \Cref{fig:localization-system-evaluation_laser-deformation-1-corrected,fig:localization-system-evaluation_laser-deformation-2-corrected} were taken from the same test but now using the spherical linear interpolation module. In the top and bottom of \Cref{fig:localization-system-evaluation_laser-deformation-1} it can be seen that the laser measurements in front of the robot were deformed outwards, causing the points to be projected outside both walls. On the top right corner of \Cref{fig:localization-system-evaluation_laser-deformation-2} there is also a very large deformation, which is now very noticeable, because the first laser measurement isn't close to the last one. These deformations were severely diminished when the laser spherical linear interpolation module was used (as can be seen in \cref{fig:localization-system-evaluation_laser-deformation-1-corrected,fig:localization-system-evaluation_laser-deformation-2-corrected} respectively.
+\Cref{fig:localization-system-evaluation_laser-deformation-1,fig:localization-system-evaluation_laser-deformation-2} were retrieved using the Jarvis robot with velocities of 50-30-50-10 cm/s and without using the spherical linear interpolation module. \Cref{fig:localization-system-evaluation_laser-deformation-1-corrected,fig:localization-system-evaluation_laser-deformation-2-corrected} were taken from the same test but now using the spherical linear interpolation module. In the top and bottom of \Cref{fig:localization-system-evaluation_laser-deformation-1} it can be seen that the laser measurements in front of the robot were deformed outwards, causing the points to be projected outside both walls. On the top right corner of \Cref{fig:localization-system-evaluation_laser-deformation-2} there is also a very large deformation, which is now very noticeable, because the first laser measurement is not close to the last one. These deformations were severely diminished when the laser spherical linear interpolation module was used (as can be seen in \cref{fig:localization-system-evaluation_laser-deformation-1-corrected,fig:localization-system-evaluation_laser-deformation-2-corrected} respectively).
 
 Analyzing the tests in \cref{tab:localization-system-evaluation_3-dof-results} associated to the \crefrange{fig:localization-system-evaluation_laser-deformation-1}{fig:localization-system-evaluation_laser-deformation-2-corrected} it can be seen that using the spherical linear interpolation module allowed to reduce the mean (from 8.88 mm to 6.42 mm) and standard deviation (from 8.74 mm to 3.99 mm) of the translation error and also reduced the mean (from 0.42º to 0.39º) and standard deviation (from 0.14º to 0.10º) of the rotation error. Moreover, given that the correction of deformation gives a point cloud more similar to the map, the usage of the spherical linear interpolation module also allowed to reduced the global computation time (mean from 14.83 ms to 13.38 ms and standard deviation from 23.09 ms to 13.32 ms).
 
-The laser assembly parameters present in \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl} as "Nº scans / Nº lasers" have the meaning of how many laser scans were being merged into each published \emph{sensor\_msgs::PointCloud2} and from how many sensors those lasers scans were being generated. As such, a configuration of "2-4/2" means that the laser assembler was merging between 2 (moving fast) and 4 (moving slow) lasers scans depending on the velocity of the robot, and these laser scans were being generated by two \glspl{lidar} sensors (one in the front and another in the back of the robot).
+The laser assembly parameters present in \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl} as "Nº scans / Nº lasers" have the meaning of how many laser scans were being merged into each published \emph{sensor\_msgs::PointCloud2} and from how many sensors those lasers scans were being generated. As such, a configuration of "2--4/2" means that the laser assembler was merging between 2 (moving fast) and 4 (moving slow) lasers scans depending on the velocity of the robot, and these laser scans were being generated by two \glspl{lidar} sensors (one in the front and another in the back of the robot).
 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.49\textwidth]{localization-system-evaluation/tests-3dof/laser-spherical-interpolation/laser-deformation-1}
-	\caption{Large laser deformation on opposite walls (top and bottom) when the robot is rotating (grid with 1 m spacing)}
+	\caption{Large laser deformation on opposite walls (top and bottom) when the robot was rotating (grid with 1 m spacing)}
 	\label{fig:localization-system-evaluation_laser-deformation-1}
 \end{figure}
 
@@ -104,7 +104,7 @@ The laser assembly parameters present in \cref{tab:localization-system-evaluatio
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.49\textwidth]{localization-system-evaluation/tests-3dof/laser-spherical-interpolation/laser-deformation-2}
-	\caption{Laser deformation on the top right corner when the robot is rotating (grid with 1 m spacing)}
+	\caption{Laser deformation on the top right corner when the robot was rotating (grid with 1 m spacing)}
 	\label{fig:localization-system-evaluation_laser-deformation-2}
 \end{figure}
 
@@ -244,9 +244,9 @@ The initial pose estimation using feature matching was very reliable and success
 
 \subsection{Translation and rotation errors}
 
-By analyzing \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl} it can be seen that the 3 \gls{dof} \gls{drl} system can achieve pose tracking with less than 10 mm in translation error and less than 1 degree in rotation error when using a detailed map (10 mm cell resolution) and a sensor with good field of view (360º) and low sensor noise (15 mm). When using a sensor with low field of view (180º) and high sensor noise (35 mm), the \gls{drl} system still managed to achieve localization accuracy bellow the map resolution (translation error less than 20 mm and rotation error close to 5 degrees in a map with 25 mm cell resolution).
+By analyzing \cref{tab:localization-system-evaluation_3-dof-results,tab:localization-system-evaluation_3-dof-results-odometry-amcl} it can be seen that the 3 \gls{dof} \gls{drl} system can achieve pose tracking with less than 10 mm in translation error and less than 1 degree in rotation error when using a detailed map (10 mm cell resolution) and a sensor with good field of view (360º) and low sensor noise (15 mm). When using a sensor with low field of view (180º) and high sensor noise (35 mm), the \gls{drl} system still managed to achieve localization accuracy below the map resolution (translation error less than 20 mm and rotation error close to 5 degrees in a map with 25 mm cell resolution).
 
-As expected, the tests at lower velocities had less mean error than the ones at higher speeds while requiring slightly less computation time. Also, the simulator tests had less mean error than the ones performed on the physical platforms. This is due to laser scan deformation that couldn't be simulated and also because the Gazebo simulator was only able to add Gaussian noise to the laser measurements. To compensate these limitations, the error in odometry and laser measurements in simulation was deliberately higher than the expected values for the physical platforms. This explains why the localization system needed more time to perform the pose estimations in the simulator tests. It can also be seen that adding unknown objects increased the mean error and required computation time while adding dynamic objects increased these values even further (given that a moving object appears in a laser scan as a deformed version of its static shape).
+As expected, the tests at lower velocities had less mean error than the ones at higher speeds while requiring slightly less computation time. Also, the simulator tests had less mean error than the ones performed on the physical platforms. This is due to laser scan deformation that could not be simulated and also because the Gazebo simulator was only able to add Gaussian noise to the laser measurements. To compensate these limitations, the error in odometry and laser measurements in simulation was deliberately higher than the expected values for the physical platforms. This explains why the localization system needed more time to perform the pose estimations in the simulator tests. It can also be seen that adding unknown objects increased the mean error and required computation time while adding dynamic objects increased these values even further (given that a moving object appears in a laser scan as a deformed version of its static shape).
 
 These results show that the localization system can reliably achieve high accuracy pose tracking even in dynamic and challenging environments.
 
@@ -300,7 +300,7 @@ The global computation time is mostly associated with the point cloud registrati
 
 \subsection{Mapping}
 
-Any self-localization system requires a map to estimate the pose of the robot when using exteroceptive information. If such map doesn't exist, then the first live point cloud can be considered as the initial map, and then it can be updated dynamically as new sensor data is processed.
+Any self-localization system requires a map to estimate the pose of the robot when using exteroceptive information. If such map does not exist, then the first live point cloud can be considered as the initial map, and then it can be updated dynamically as new sensor data is processed.
 
 The dynamic and incremental map update capability of the \gls{drl} system can be used to register the full sensor point clouds or only the inliers / outliers. Full integration is useful when starting a map from scratch (example in \cref{fig:localization-system-evaluation_drl-2.5cm-1.0-bag-speed,fig:localization-system-evaluation_indoor-10mm-mapping}). Partial integration can be useful when there is a highly detailed map (for example generated from a \gls{cad} model or with other highly accurate mapping system) and we only want to add or remove information from it, such as integrating new large objects and opening doors in the map (example in \cref{fig:localization-system-evaluation_indoor-10mm-mapping-partial-integration}). Partial integration besides reducing the computational resources required, it also allows to keep the detail of the original map (by avoiding deformations due to sensor measurement noise). This can be clearly seen in \cref{fig:localization-system-evaluation_indoor-10mm-mapping-full-integration,fig:localization-system-evaluation_lab-10mm-dynamic} in which the sensor noise polluted the walls of the original map (given that the map cell resolution was much smaller than the mean sensor noise). By performing selective mapping this problem was avoided in the map present in \Cref{fig:localization-system-evaluation_indoor-10mm-mapping-partial-integration} (by inserting on the map only unknown zones while keeping the walls generated from the \gls{cad} model untouched).
 
@@ -404,7 +404,7 @@ The next sections will provide an analysis of the 6 \gls{dof} results achieved w
 
 
 \begin{sidewaystable}
-	\caption{6 \glsentrytext{dof} results}
+	\caption{6 \glsentrytext{dof} test results}
 	\tabulinesep = 1.2ex
 	\setlength{\tabcolsep}{0.2em}
 	\centering
@@ -443,7 +443,7 @@ In the tests performed by the \gls{drl} system and presented in \Cref{tab:locali
 
 \subsection{Point cloud registration}
 
-Looking at \Cref{tab:localization-system-evaluation_6-dof-results} and \crefrange{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-cumulative}{fig:localization-system-evaluation_kinect-translations-robot-movement-path-combined-3d}, it is clear that the \gls{drl} system is able to register point clouds with high accuracy, even when they are severely down-sampled (due to real-time processing constraints). Moreover, the localization system is robust against temporary absence of sensor data (when the field of view of the Kinect was outside the known map in the rotations tests) and was able to quickly recover to accurate tracking when valid sensor data was given (analyzing \crefrange{fig:localization-system-evaluation_kinect-rotations-robot-movement-path-combined-xy}{fig:localization-system-evaluation_kinect-translations-robot-movement-path-combined-3d} it can be seen that the ethzasl\_icp\_mapper was less successful in detecting unreliable pose estimations and recovering from then). In these situations the recovery algorithms were activated, switching the registration algorithm from \gls{icp} point-to-point to \gls{icp} point-to-plane (89 times in 968 Kinect point clouds in the case of the rotations test and 0 on the remaining two tests). Given that these sensor data outages were temporary, the initial pose algorithms weren't necessary. Nevertheless, if the Kinect remained outside the map for a longer period of time, the localization system would alert that the tracking was lost and it would try to find its current pose using feature matching.
+Looking at \Cref{tab:localization-system-evaluation_6-dof-results} and \crefrange{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-cumulative}{fig:localization-system-evaluation_kinect-translations-robot-movement-path-combined-3d}, it is clear that the \gls{drl} system is able to register point clouds with high accuracy, even when they are severely down-sampled (due to real-time processing constraints). Moreover, the localization system is robust against temporary absence of sensor data (when the field of view of the Kinect was outside the known map in the rotations tests) and was able to quickly recover to accurate tracking when valid sensor data was given (analyzing \crefrange{fig:localization-system-evaluation_kinect-rotations-robot-movement-path-combined-xy}{fig:localization-system-evaluation_kinect-translations-robot-movement-path-combined-3d} it can be seen that the ethzasl\_icp\_mapper was less successful in detecting unreliable pose estimations and recovering from then). In these situations the recovery algorithms were activated, switching the registration algorithm from \gls{icp} point-to-point to \gls{icp} point-to-plane (89 times in 968 Kinect point clouds in the case of the rotations test and 0 on the remaining two tests). Given that these sensor data outages were temporary, the initial pose algorithms were not necessary. Nevertheless, if the Kinect remained outside the map for a longer period of time, the localization system would alert that the tracking was lost and it would try to find its current pose using feature matching.
 
 \begin{figure}[H]
 	\centering
@@ -682,26 +682,26 @@ Comparing \Cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-veloc
 
 \subsection{Mapping}
 
-The \gls{drl} system can perform mapping of the environment and is able to build very detailed point clouds. These point clouds can be continuously re-sampled with the Moving Least Squares algorithm (example in \Cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-slam}) in order to reconstruct the surfaces of the environment and attenuate the double wall effects due to high sensor noise.
+The \gls{drl} system can perform mapping of the environment and is able to build very detailed point clouds. These point clouds can be continuously re-sampled with the Moving Least Squares algorithm (example in \Cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-slam}) in order to reconstruct the surfaces of the environment and attenuate the double wall effects due to high sensor noise (comparing \cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-gt-slam} to \cref{fig:localization-system-evaluation_kinect-fly-30cm-per-sec-velocity-drl-slam} it can be seen that the DRL system managed to build a map with more detail and less noise than the map made with the ground truth poses).
 
 Besides the internal mapping capabilities of the \gls{drl} system, it can also be paired with the OctoMap \cite{Hornung2013} library in order to perform probabilistic integration of sensor data and be able to remove missing objects from the reference point cloud.
 
 
 \begin{figure}[H]
 	\centering
-	\begin{subfigure}[ht]{0.4\textwidth}
+	\begin{subfigure}[ht]{0.37\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-1-gt}
 	\end{subfigure}
-	\begin{subfigure}[ht]{0.4\textwidth}
+	\begin{subfigure}[ht]{0.37\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-2-gt}
 	\end{subfigure}
-%	\begin{subfigure}[ht]{0.4\textwidth}
+%	\begin{subfigure}[ht]{0.37\textwidth}
 %		\centering
 %		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-3-gt}
 %	\end{subfigure}
-	\begin{subfigure}[ht]{0.4\textwidth}
+	\begin{subfigure}[ht]{0.37\textwidth}
 		\centering
 		\includegraphics[width=\textwidth]{localization-system-evaluation/tests-6dof/kinect-fly-30cm-per-sec-velocity/3d-slam-4-gt}
 	\end{subfigure}

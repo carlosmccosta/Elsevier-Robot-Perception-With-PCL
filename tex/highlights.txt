@@ -1,0 +1,6 @@
+Highlights
+- 3/6 DoF localization system capable to operate in cluttered / dynamic and challenging environments
+- Efficient C++ ROS implementation with multi-level point cloud registration and recovery
+- Robust initial pose estimation using geometric feature matching
+- 2D/3D mapping with integration of full sensor data or only unknown areas
+- Fully configurable and modular processing pipeline, extensible to other tasks besides self-localization
